@@ -1,0 +1,20 @@
+### Teste 1 - Criar um Agendamento - Caminho Feliz
+POST http://localhost:8080/api/v1/agendamentos/agendar
+Content-Type: application/json
+
+{
+  "nomeSolicitante": "Maria da Silva",
+  "cpf": "10551001488",
+  "rg": "12312415",
+  "tipoServico": "Renovação de CNH"
+}
+
+### Teste 2 - Tentar criar com CPF invalido - Deve retornar Erro 400
+POST http://localhost:8080/api/v1/agendamentos/agendar
+Content-Type: application/json
+
+{
+  "nomeSolicitante": "João Invalido",
+  "cpf": "11122233300",
+  "tipoServico": "Teste Erro"
+}
