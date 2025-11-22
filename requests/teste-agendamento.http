@@ -18,3 +18,7 @@ Content-Type: application/json
   "cpf": "11122233300",
   "tipoServico": "Teste Erro"
 }
+
+### Teste 3 - Consulta agendamentos - Deve retornar OK
+GET http://localhost:8080/api/v1/agendamentos/consultar_agendamentos
+Content-Type: application/json
