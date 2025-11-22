@@ -39,10 +39,9 @@ public class AgendamentoService {
     }
 
     public List<AgendamentoResponseDTO> consultar() {
-        // 1. Usa o JpaRepository para buscar todos os Agendamentos
+
         List<Agendamento> agendamentos = repository.findAll();
 
-        // 2. Mapeia a lista de Agendamento para uma lista de AgendamentoResponseDTO usando Stream API
         return agendamentos.stream()
                 .map(agendamento -> new AgendamentoResponseDTO(
                         agendamento.getId(),
