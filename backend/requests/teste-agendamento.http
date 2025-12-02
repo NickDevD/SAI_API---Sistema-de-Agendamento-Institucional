@@ -1,0 +1,36 @@
+### 1. Criar um Usuário ADMIN (Apenas uma vez)
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "login": "recepcao.lider",
+  "senha": "123",
+  "role": "ADMIN"
+}
+
+### 2. Fazer Login e GRAVAR O TOKEN AUTOMATICAMENTE
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "login": "recepcao.lider",
+  "senha": "123"
+}
+
+> {%
+    // O IntelliJ executa esse script Javascript APÓS a requisição
+    // Ele pega o campo 'token' do JSON e salva na variavel global 'auth_token'
+    client.global.set("auth_token", response.body.token);
+    client.log("Token capturado com sucesso: " + response.body.token);
+%}
+
+### 3. Criar Agendamento (Usando o Token Gravado)
+POST http://localhost:8080/api/v1/agendamentos
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "nomeSolicitante": "Cidadão Autenticado",
+  "cpf": "46223556034",
+  "tipoServico": "Retirada de Documento - Via Token Automatico"
+}
