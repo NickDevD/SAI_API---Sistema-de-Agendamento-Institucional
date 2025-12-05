@@ -1,23 +1,28 @@
 # Usa a imagem base do Java para rodar o Spring Boot
 FROM openjdk:22-jdk-slim AS build
 
-# Define o diretório de trabalho
 WORKDIR /app
 
-# 1. Copia o arquivo principal de configuração do Maven
-COPY pom.xml .
+# 0. Instalação necessária para corrigir o formato (dos2unix)
+# Você precisará instalar uma ferramenta de gerenciamento de pacotes (ex: apt ou apk)
+# Se a imagem openjdk:22-jdk-slim for baseada em Debian:
+RUN apt-get update && apt-get install -y dos2unix
 
-# 2. Copia o script do Maven Wrapper e o diretório de configurações do Maven
-# (Isso resolve o erro "./mvnw: not found")
+# 1. COPIA os arquivos de build
+COPY pom.xml .
 COPY mvnw .
 COPY mvnw.cmd .
 COPY .mvn .mvn
 
-# 3. Copia o código-fonte (classes, controllers, services)
+# 2. **CORREÇÃO CRÍTICA (dos2unix):** Converte a quebra de linha de Windows para Linux
+RUN dos2unix mvnw
+
+# 3. Garante permissão de execução
+RUN chmod +x mvnw
+
+# 4. COPIA o código-fonte
 COPY src ./src
 
-# 4. Compila o projeto
-# O Docker agora tem acesso ao script mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Estágio de Runtime (Mantido)
