@@ -44,8 +44,23 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private String recuperarToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.replace("Bearer ", "");
+        if (authHeader == null || authHeader.isBlank()) return null;
+        if (!authHeader.startsWith("Bearer ")) return null;
+        return authHeader.substring(7).trim(); // remove "Bearer "
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // Ignora autenticação em login/register e docs/swagger
+        return path.contains("/api/v1/auth/login")
+                || path.contains("/api/v1/auth/register")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/webjars")
+                || path.equals("/swagger-ui.html");
+    }
+
 
 }
