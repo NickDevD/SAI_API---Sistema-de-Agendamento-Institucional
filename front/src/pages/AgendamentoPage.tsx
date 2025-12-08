@@ -21,7 +21,7 @@ import {
     Chip,
     Alert,
     Snackbar,
-    InputAdornment
+    InputAdornment,
 } from '@mui/material';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
@@ -33,29 +33,26 @@ import {
     AccessTime,
     Send,
     Refresh,
-    CalendarToday
+    CalendarToday,
 } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// --- Configuração API ---
+// ---------- API ----------
 const api = axios.create({
     baseURL: 'http://localhost:8080/api/v1',
 });
 
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
-// --- Tipos ---
+// ---------- Types ----------
 interface Agendamento {
     id: string;
     nomeSolicitante: string;
@@ -81,13 +78,11 @@ const TIPOS_SERVICO = [
     { value: 'OUTROS', label: 'Outros Serviços' },
 ];
 
-// -------------------------------------------------------
-// COMPONENTE PRINCIPAL
-// -------------------------------------------------------
+// ==================================================
+// COMPONENT
+// ==================================================
 export default function AgendamentoPage() {
-
-    const navigate = useNavigate();
-
+    useNavigate();
     const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -97,151 +92,147 @@ export default function AgendamentoPage() {
         cpf: '',
         rg: '',
         tipoServico: '',
-        dataHoraChegada: ''
+        dataHoraChegada: '',
     });
 
     const [toast, setToast] = useState({
         open: false,
         message: '',
-        severity: 'success' as 'success' | 'error'
+        severity: 'success' as 'success' | 'error',
     });
 
-    // Buscar agendamentos
+    // ---------- Fetch ----------
     const fetchAgendamentos = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
+            const response = await api.get<Agendamento[]>(
+                '/agendamentos/consultar_agendamentos'
+            );
             setAgendamentos(response.data);
-        } catch (error: any) {
-            console.error(error);
-            if (error.response?.status === 401 || error.response?.status === 403) {
-                showToast('Sessão expirada. Faça login novamente.', 'error');
-                setTimeout(() => navigate('/'), 2000);
-            } else {
-                showToast("Erro ao carregar agendamentos.", "error");
-            }
+        } catch {
+            setToast({
+                open: true,
+                message: 'Erro ao carregar agendamentos.',
+                severity: 'error',
+            });
         } finally {
             setLoading(false);
         }
-    }, [navigate]);
+    }, []);
 
     useEffect(() => {
         void fetchAgendamentos();
     }, [fetchAgendamentos]);
 
-    // Enviar formulário
+    // ---------- Submit ----------
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
 
         try {
-            const payload = {
+            await api.post('/agendamentos/agendar', {
                 ...formData,
-                cpf: formData.cpf.replace(/\D/g, '')
-            };
+                cpf: formData.cpf.replace(/\D/g, ''),
+            });
 
-            await api.post('/agendamentos/agendar', payload);
-
-            showToast('Agendamento realizado com sucesso!', 'success');
+            setToast({
+                open: true,
+                message: 'Agendamento realizado com sucesso!',
+                severity: 'success',
+            });
 
             setFormData({
                 nomeSolicitante: '',
                 cpf: '',
                 rg: '',
                 tipoServico: '',
-                dataHoraChegada: ''
+                dataHoraChegada: '',
             });
 
             await fetchAgendamentos();
-
-        } catch (error: any) {
-            console.error(error);
-
-            let msg = "Erro ao realizar agendamento.";
-
-            const status = error.response?.status;
-            const data = error.response?.data;
-
-            if (data?.mensagem) msg = data.mensagem;
-            else if (status === 400) msg = "Dados inválidos. Verifique os campos.";
-            else if (status === 409) msg = "Já existe um agendamento nesse horário.";
-            else if (status === 500) msg = "Erro interno. Tente novamente mais tarde.";
-
-            showToast(msg, "error");
-
+        } catch {
+            setToast({
+                open: true,
+                message: 'Erro ao realizar agendamento.',
+                severity: 'error',
+            });
         } finally {
             setSubmitting(false);
         }
     };
 
-    // Handlers gerais
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
-    };
-
-    const handleSelectChange = (e: SelectChangeEvent) => {
-        setFormData(prev => ({
-            ...prev,
-            tipoServico: e.target.value
-        }));
-    };
-
-    const showToast = (message: string, severity: 'success' | 'error') => {
-        setToast({ open: true, message, severity });
-    };
-
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: Agendamento['status']) => {
         switch (status) {
-            case 'CONCLUIDO': return 'success';
-            case 'CANCELADO': return 'error';
-            case 'AGUARDANDO': return 'warning';
-            case 'EM_ATENDIMENTO': return 'info';
-            default: return 'default';
+            case 'CONCLUIDO':
+                return 'success';
+            case 'CANCELADO':
+                return 'error';
+            case 'AGUARDANDO':
+                return 'warning';
+            case 'EM_ATENDIMENTO':
+                return 'info';
+            default:
+                return 'default';
         }
     };
 
-    const formatData = (iso: string) => {
-        if (!iso) return '-';
-        return new Date(iso).toLocaleString('pt-BR');
-    };
+    const formatData = (iso: string) =>
+        iso ? new Date(iso).toLocaleString('pt-BR') : '-';
 
-    // -------------------------------------------------------
+    // ==================================================
     // RENDER
-    // -------------------------------------------------------
+    // ==================================================
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-
-            {/* Cabeçalho */}
+        <Container maxWidth={false} sx={{ px: 4 }}>
+        {/* Header */}
             <Box mb={4}>
-                <Typography variant="h4" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center">
                     <CalendarToday sx={{ mr: 2 }} />
                     Gerenciamento de Agendamentos
                 </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                    Crie e visualize agendamentos do sistema SAI.
+                <Typography color="text.secondary">
+                    Crie e visualize agendamentos do sistema.
                 </Typography>
             </Box>
 
-            {/* Grid principal */}
-            <Grid container spacing={3}>
-
-                {/* Formulário */}
+            {/* MAIN GRID */}
+            <Grid
+                container
+                spacing={3}
+                alignItems="stretch"
+                sx={{
+                    minHeight: 'calc(100vh - 200px)',
+                }}
+            >
+                {/* FORM */}
                 <Grid item xs={12} md={4}>
-                    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-                        <Typography variant="h6" color="secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            color="secondary"
+                            display="flex"
+                            alignItems="center"
+                            mb={2}
+                        >
                             <Send sx={{ mr: 1 }} /> Novo Agendamento
                         </Typography>
 
-                        <form onSubmit={handleSubmit}>
-
+                        <Box component="form" onSubmit={handleSubmit} sx={{ flex: 1 }}>
                             <TextField
                                 label="Nome do Solicitante"
                                 name="nomeSolicitante"
                                 value={formData.nomeSolicitante}
-                                onChange={handleInputChange}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, nomeSolicitante: e.target.value })
+                                }
                                 fullWidth
                                 margin="normal"
                                 required
@@ -258,7 +249,9 @@ export default function AgendamentoPage() {
                                 label="CPF"
                                 name="cpf"
                                 value={formData.cpf}
-                                onChange={handleInputChange}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, cpf: e.target.value })
+                                }
                                 fullWidth
                                 margin="normal"
                                 required
@@ -272,10 +265,12 @@ export default function AgendamentoPage() {
                             />
 
                             <TextField
-                                label="RG (Opcional)"
+                                label="RG"
                                 name="rg"
                                 value={formData.rg}
-                                onChange={handleInputChange}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, rg: e.target.value })
+                                }
                                 fullWidth
                                 margin="normal"
                             />
@@ -285,7 +280,9 @@ export default function AgendamentoPage() {
                                 <Select
                                     value={formData.tipoServico}
                                     label="Tipo de Serviço"
-                                    onChange={handleSelectChange}
+                                    onChange={(e: SelectChangeEvent) =>
+                                        setFormData({ ...formData, tipoServico: e.target.value })
+                                    }
                                 >
                                     {TIPOS_SERVICO.map((t) => (
                                         <MenuItem key={t.value} value={t.value}>
@@ -296,11 +293,13 @@ export default function AgendamentoPage() {
                             </FormControl>
 
                             <TextField
-                                label="Data/Hora Prevista"
+                                label="Data / Hora"
                                 name="dataHoraChegada"
                                 type="datetime-local"
                                 value={formData.dataHoraChegada}
-                                onChange={handleInputChange}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, dataHoraChegada: e.target.value })
+                                }
                                 fullWidth
                                 margin="normal"
                                 required
@@ -319,21 +318,28 @@ export default function AgendamentoPage() {
                                 fullWidth
                                 variant="contained"
                                 color="secondary"
-                                disabled={submitting}
                                 sx={{ mt: 2 }}
+                                disabled={submitting}
                             >
-                                {submitting ? <CircularProgress size={24} color="inherit" /> : "Confirmar Agendamento"}
+                                {submitting ? <CircularProgress size={24} /> : 'Confirmar'}
                             </Button>
-
-                        </form>
+                        </Box>
                     </Paper>
                 </Grid>
 
-                {/* Lista */}
-                <Grid item xs={12} md={8}>
-                    <Paper elevation={3} sx={{ p: 3, borderRadius: 2, minHeight: "500px" }}>
+                {/* LIST */}
+                <Grid item xs={12} md={10}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                        }}
+                    >
                         <Box display="flex" justifyContent="space-between" mb={2}>
-                            <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="h6" display="flex" alignItems="center">
                                 <EventNote sx={{ mr: 1 }} /> Lista de Agendamentos
                             </Typography>
 
@@ -347,76 +353,85 @@ export default function AgendamentoPage() {
                             </Button>
                         </Box>
 
-                        {loading ? (
-                            <Box display="flex" justifyContent="center" mt={5}>
-                                <CircularProgress />
-                            </Box>
-                        ) : agendamentos.length === 0 ? (
-                            <Alert severity="info">Nenhum agendamento encontrado.</Alert>
-                        ) : (
-                            <List>
-                                {agendamentos.map((item) => (
-                                    <ListItem
-                                        key={item.id}
-                                        divider
-                                        sx={{ flexWrap: 'wrap' }}
-                                        secondaryAction={
-                                            <Chip
-                                                label={item.status}
-                                                color={getStatusColor(item.status) as any}
-                                                size="small"
-                                            />
-                                        }
-                                    >
-                                        <ListItemAvatar>
-                                            <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                                                <Person />
-                                            </Avatar>
-                                        </ListItemAvatar>
+                        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                            {loading ? (
+                                <Box display="flex" justifyContent="center" mt={4}>
+                                    <CircularProgress />
+                                </Box>
+                            ) : agendamentos.length === 0 ? (
+                                <Alert severity="info">Nenhum agendamento encontrado.</Alert>
+                            ) : (
+                                <List>
+                                    {agendamentos.map((item) => (
+                                        <ListItem
+                                            key={item.id}
+                                            divider
+                                            // Removemos 'secondaryAction' daqui!
+                                            sx={{
+                                                flexWrap: 'wrap',
+                                                '&:hover': { backgroundColor: '#f5f5f5' }
+                                            }}
+                                            // REMOVER: secondaryAction={...}
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar sx={{ bgcolor: 'secondary.main' }}>
+                                                    <Person />
+                                                </Avatar>
+                                            </ListItemAvatar>
 
-                                        <ListItemText
-                                            primary={
-                                                <Typography fontWeight="bold">
-                                                    {item.nomeSolicitante}
-                                                </Typography>
-                                            }
-                                            secondary={
-                                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <Typography variant="body2">
-                                                        <strong>Serviço:</strong>{' '}
-                                                        {TIPOS_SERVICO.find(s => s.value === item.tipoServico)?.label}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        <strong>CPF:</strong> {item.cpf} —{' '}
-                                                        <strong>Chegada:</strong> {formatData(item.dataHoraChegada)}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                        />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
+                                            <ListItemText
+                                                sx={{ ml: 2 }} // Adiciona um pequeno espaçamento da Avatar
+                                                primary={
+                                                    <Box
+                                                        display="flex"
+                                                        justifyContent="space-between"
+                                                        alignItems="center"
+                                                        // O 'mr: 1' ou similar é crucial se o Chip for muito largo
+                                                    >
+                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                            {item.nomeSolicitante}
+                                                        </Typography>
+
+                                                        {/* O CHIP é movido para dentro do primary do ListItemText */}
+                                                        <Chip
+                                                            label={item.status}
+                                                            color={getStatusColor(item.status)}
+                                                            size="small"
+                                                            sx={{ minWidth: 100 }} // Ajuste o tamanho mínimo se necessário
+                                                        />
+                                                    </Box>
+                                                }
+                                                secondary={
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
+                                                        <Typography variant="body2">
+                                                            <strong>Serviço:</strong>{' '}
+                                                            {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label ||
+                                                                item.tipoServico}
+                                                        </Typography>
+                                                        <Typography variant="body2">
+                                                            <strong>CPF:</strong> {item.cpf} —{' '}
+                                                            <strong>Chegada:</strong> {formatData(item.dataHoraChegada)}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            )}
+                        </Box>
                     </Paper>
                 </Grid>
-
             </Grid>
 
+            {/* TOAST */}
             <Snackbar
                 open={toast.open}
                 autoHideDuration={5000}
-                onClose={() => setToast(prev => ({ ...prev, open: false }))}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                onClose={() => setToast({ ...toast, open: false })}
             >
-                <Alert
-                    severity={toast.severity}
-                    onClose={() => setToast(prev => ({ ...prev, open: false }))}
-                    variant="filled"
-                >
-                    {toast.message}
-                </Alert>
+                <Alert severity={toast.severity}>{toast.message}</Alert>
             </Snackbar>
-
         </Container>
     );
 }
