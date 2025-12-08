@@ -5,9 +5,7 @@ import { ToastContainer } from 'react-toastify';
 // Importa os arquivos que acabamos de criar/configurar
 import theme from './theme/theme';
 import LoginPage from './pages/LoginPage';
-
-// Componente temporário para o agendamento (será substituído)
-const AgendamentoPage = () => <h1 style={{textAlign: 'center', marginTop: '50px'}}>Página de Agendamentos (Em Construção)</h1>;
+import AgendamentoPage from './pages/AgendamentoPage';
 
 function App() {
     return (
