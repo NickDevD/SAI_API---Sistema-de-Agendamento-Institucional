@@ -8,6 +8,7 @@ import com.devtec.sai.repository.AgendamentosRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AgendamentoService {
@@ -52,5 +53,24 @@ public class AgendamentoService {
                         agendamento.getStatus()
                 ))
                 .toList();
+    }
+
+    public AgendamentoResponseDTO atualizarStatus(UUID id, StatusAgendamento novoStatus) {
+
+        Agendamento agendamento = repository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Agendamento não encontrado"));
+
+        agendamento.setStatus(novoStatus);
+
+        Agendamento atualizado = repository.save(agendamento);
+
+        return new AgendamentoResponseDTO(
+                atualizado.getId(),
+                atualizado.getNomeSolicitante(),
+                atualizado.getCpf(),
+                atualizado.getTipoServico(),
+                atualizado.getDataHoraChegada(),
+                atualizado.getStatus()
+        );
     }
 }
