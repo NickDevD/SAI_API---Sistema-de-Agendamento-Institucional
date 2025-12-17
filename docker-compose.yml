@@ -19,15 +19,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 2. SERVIÇO DO BACKEND (API Java)
+  # 2. SERVIÇO DO BACKEND
   backend-api:
     build:
-      context: ./backend # CAMINHO AJUSTADO
+      context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
-      # Conecta ao serviço do Docker, não a localhost
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
@@ -36,23 +35,20 @@ services:
       postgres-db:
         condition: service_healthy
 
-  # 3. SERVIÇO DO FRONTEND (React com Hot Reload)
+  # 3. SERVIÇO DO FRONTEND
   frontend-app:
     build:
-      context: ./front # CAMINHO AJUSTADO
-      dockerfile: Dockerfile # Usando o Dockerfile de desenvolvimento
+      context: ./front
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     environment:
-      # Variável para o Frontend saber a URL do Backend dentro do Docker
-      VITE_API_BASE_URL: http://localhost:8080/api/v1 # Usa o nome do serviço 'backend-api'
+      VITE_API_BASE_URL: http://localhost:8080/api/v1
     volumes:
-      # Mapeia o código do seu computador para o container (para Hot Reload)
       - ./front:/app
-      # Evita que o volume de código sobrescreva o node_modules dentro do container
       - /app/node_modules
     depends_on:
-      - backend-api # O Frontend só sobe depois que o Backend estiver disponível
+      - backend-api
 
 volumes:
   postgres_data:
