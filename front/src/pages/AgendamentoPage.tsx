@@ -31,7 +31,6 @@ import {
     AddCircle
 } from '@mui/icons-material';
 
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // ---------- API ----------
@@ -68,6 +67,7 @@ interface FormData {
     dataHoraChegada: string;
 }
 
+// ---------- Constantes ----------
 const TIPOS_SERVICO = [
     { value: 'EMISSAO_DOCUMENTOS', label: 'Emissão de Documentos' },
     { value: 'BENEFICIO_PREVIDENCIARIO', label: 'Benefício Previdenciário' },
@@ -83,17 +83,27 @@ const PRIORIDADES = [
     { value: 'PCD', label: 'PCD' },
 ];
 
+// ---------- Helpers ----------
+const statusColorMap: Record<Agendamento['status'], string> = {
+    AGUARDANDO: '#ed6c02',
+    EM_ATENDIMENTO: '#0288d1',
+    CONCLUIDO: '#2e7d32',
+    CANCELADO: '#d32f2f',
+};
+
+const prioridadeShortLabel = (prioridade: string) => {
+    if (prioridade === 'NORMAL') return null;
+    return prioridade;
+};
+
 // ===============================
 // COMPONENT
 // ===============================
 export default function AgendamentoPage() {
-    useNavigate();
 
     const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
-    const [, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
-
     const [modalOpen, setModalOpen] = useState(false);
 
     const [formData, setFormData] = useState<FormData>({
@@ -113,24 +123,12 @@ export default function AgendamentoPage() {
 
     // ---------- Fetch ----------
     const fetchAgendamentos = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
-            setAgendamentos(response.data);
-        } catch (err) {
-            console.error(err);
-            setToast({
-                open: true,
-                message: 'Erro ao carregar agendamentos.',
-                severity: 'error',
-            });
-        } finally {
-            setLoading(false);
-        }
+        const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
+        setAgendamentos(response.data);
     }, []);
 
     useEffect(() => {
-        void fetchAgendamentos();
+        fetchAgendamentos();
     }, [fetchAgendamentos]);
 
     // ---------- Submit ----------
@@ -146,7 +144,7 @@ export default function AgendamentoPage() {
 
             setToast({
                 open: true,
-                message: 'Agendamento realizado com sucesso!',
+                message: 'Agendamento criado com sucesso!',
                 severity: 'success',
             });
 
@@ -160,46 +158,39 @@ export default function AgendamentoPage() {
             });
 
             setModalOpen(false);
-            await fetchAgendamentos();
-        } catch (err) {
-            console.error(err);
+            fetchAgendamentos();
+        } catch {
             setToast({
                 open: true,
-                message: 'Erro ao realizar agendamento.',
+                message: 'Erro ao criar agendamento.',
                 severity: 'error',
             });
         } finally {
             setSubmitting(false);
         }
     };
-    const formatData = (iso: string | null) =>
-        iso ? new Date(iso).toLocaleString('pt-BR') : '-';
 
     const atualizarStatus = async (id: string, status: Agendamento['status']) => {
-        setUpdatingId(id);
-        try {
-            await api.post(`/agendamentos/${id}/status`, { status });
-            setToast({ open: true, message: `Status alterado para ${status}`, severity: 'success' });
-            await fetchAgendamentos();
-        } catch (err) {
-            console.error(err);
-            setToast({ open: true, message: 'Erro ao atualizar status.', severity: 'error' });
-        } finally {
-            setUpdatingId(null);
+        if (status === 'CANCELADO') {
+            const confirm = window.confirm('Tem certeza que deseja cancelar este agendamento?');
+            if (!confirm) return;
         }
+
+        setUpdatingId(id);
+        await api.post(`/agendamentos/${id}/status`, { status });
+        fetchAgendamentos();
+        setUpdatingId(null);
     };
 
-    // ---------- NOVOS FILTROS PARA KANBAN ----------
+    // ---------- Filtros ----------
     const aguardando = agendamentos.filter(a => a.status === 'AGUARDANDO');
     const emAtendimento = agendamentos.filter(a => a.status === 'EM_ATENDIMENTO');
     const concluidos = agendamentos.filter(a => a.status === 'CONCLUIDO');
     const cancelados = agendamentos.filter(a => a.status === 'CANCELADO');
 
-    // ==============================
-    // Modal Style
-    // ==============================
+    // ---------- Modal Style ----------
     const modalStyle = {
-        position: 'absolute' as 'absolute',
+        position: 'absolute' as const,
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
@@ -211,24 +202,18 @@ export default function AgendamentoPage() {
         p: 4,
     };
 
-    // ==================================================
-    // RENDER
-    // ==================================================
     return (
         <Container maxWidth={false} sx={{ px: 4 }}>
 
-            {/* Cabeçalho */}
+            {/* Header */}
             <Box mb={4}>
                 <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center">
                     <CalendarToday sx={{ mr: 2 }} />
                     Gerenciamento de Agendamentos
                 </Typography>
-                <Typography color="text.secondary">
-                    Crie e visualize agendamentos do sistema.
-                </Typography>
             </Box>
 
-            {/* BOTÃO NOVO AGENDAMENTO */}
+            {/* Button */}
             <Box mb={3}>
                 <Button
                     variant="contained"
@@ -240,10 +225,9 @@ export default function AgendamentoPage() {
                 </Button>
             </Box>
 
-            {/* MODAL DO FORMULÁRIO */}
+            {/* MODAL */}
             <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
                 <Box sx={modalStyle}>
-
                     <Typography variant="h6" fontWeight="bold" mb={2}>
                         Novo Agendamento
                     </Typography>
@@ -273,7 +257,9 @@ export default function AgendamentoPage() {
                             margin="normal"
                             required
                             value={formData.cpf}
-                            onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({ ...formData, cpf: e.target.value })
+                            }
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -288,7 +274,9 @@ export default function AgendamentoPage() {
                             fullWidth
                             margin="normal"
                             value={formData.rg}
-                            onChange={(e) => setFormData({ ...formData, rg: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({ ...formData, rg: e.target.value })
+                            }
                         />
 
                         <FormControl fullWidth margin="normal" required>
@@ -300,7 +288,7 @@ export default function AgendamentoPage() {
                                     setFormData({ ...formData, tipoServico: e.target.value })
                                 }
                             >
-                                {TIPOS_SERVICO.map((t) => (
+                                {TIPOS_SERVICO.map(t => (
                                     <MenuItem key={t.value} value={t.value}>
                                         {t.label}
                                     </MenuItem>
@@ -317,7 +305,7 @@ export default function AgendamentoPage() {
                                     setFormData({ ...formData, prioridade: e.target.value })
                                 }
                             >
-                                {PRIORIDADES.map((p) => (
+                                {PRIORIDADES.map(p => (
                                     <MenuItem key={p.value} value={p.value}>
                                         {p.label}
                                     </MenuItem>
@@ -349,7 +337,6 @@ export default function AgendamentoPage() {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            color="secondary"
                             sx={{ mt: 2 }}
                             disabled={submitting}
                         >
@@ -359,187 +346,131 @@ export default function AgendamentoPage() {
                 </Box>
             </Modal>
 
-            {/* KANBAN DE AGENDAMENTOS */}
-            <Grid container spacing={3} sx={{ mt: 2 }}>
+            {/* KANBAN */}
+            <Grid container spacing={3}>
+                {[{ title: 'Aguardando', data: aguardando },
+                    { title: 'Em Atendimento', data: emAtendimento },
+                    { title: 'Concluídos', data: concluidos },
+                    { title: 'Cancelados', data: cancelados }].map(col => (
+                    <Grid item xs={12} sm={6} md={3} key={col.title}>
+                        <Paper
+                            sx={{
+                                p: 2,
+                                height: 'calc(100vh - 260px)',
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}
+                        >
+                            <Typography variant="h6" fontWeight="bold">
+                                {col.title}
+                            </Typography>
 
-                {/* --------------------- AGUARDANDO --------------------- */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 2, height: '75vh', display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="h6" fontWeight="bold" color="warning.main">
-                            Aguardando
-                        </Typography>
-                        <Divider sx={{ my: 1 }} />
+                            <Divider sx={{ my: 1 }} />
 
-                        <Box sx={{ overflowY: 'auto', pr: 1 }}>
-                            {aguardando.length === 0 ? (
-                                <Alert severity="info">Nenhum aguardando.</Alert>
-                            ) : (
-                                aguardando.map(item => (
-                                    <Paper key={item.id} sx={{ p: 2, mb: 2 }} variant="outlined">
-                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography fontWeight="bold">{item.nomeSolicitante}</Typography>
-                                            <Chip label={item.status} color="warning" size="small" />
+                            <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
+                                {col.data.map(item => (
+                                    <Paper
+                                        key={item.id}
+                                        variant="outlined"
+                                        sx={{
+                                            p: 2,
+                                            mb: 2,
+                                            borderLeft: `6px solid ${statusColorMap[item.status]}`
+                                        }}
+                                    >
+                                        <Box display="flex" gap={1} mb={1} flexWrap="wrap">
+                                            <Chip label={item.status} size="small" />
+                                            {prioridadeShortLabel(item.prioridade) && (
+                                                <Chip
+                                                    label={prioridadeShortLabel(item.prioridade)}
+                                                    color="error"
+                                                    size="small"
+                                                />
+                                            )}
                                         </Box>
 
+                                        <Typography fontWeight="bold">
+                                            {item.nomeSolicitante}
+                                        </Typography>
+
                                         <Typography variant="body2" mt={1}>
-                                            <strong>Serviço: </strong>
+                                            <strong>Serviço:</strong>{' '}
                                             {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label}
                                         </Typography>
 
-                                        <Typography variant="body2">
-                                            <strong>CPF:</strong> {item.cpf}
-                                        </Typography>
+                                        {item.dataHoraChegada && (
+                                            <Typography variant="body2">
+                                                <strong>Data:</strong>{' '}
+                                                {new Date(item.dataHoraChegada).toLocaleDateString()} {' '}
+                                                <strong>Hora:</strong>{' '}
+                                                {new Date(item.dataHoraChegada).toLocaleTimeString([], {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </Typography>
+                                        )}
 
-                                        <Button
-                                            variant="contained"
-                                            size="small"
-                                            sx={{ mt: 1 }}
-                                            onClick={() => atualizarStatus(item.id, 'EM_ATENDIMENTO')}
-                                            disabled={updatingId === item.id}
-                                        >
-                                            Iniciar
-                                        </Button>
-                                    </Paper>
-                                ))
-                            )}
-                        </Box>
-                    </Paper>
-                </Grid>
+                                        <Box display="flex" gap={1} mt={1.5} flexWrap="wrap">
+                                            {item.status === 'AGUARDANDO' && (
+                                                <Button
+                                                    size="small"
+                                                    variant="contained"
+                                                    onClick={() =>
+                                                        atualizarStatus(item.id, 'EM_ATENDIMENTO')
+                                                    }
+                                                    disabled={updatingId === item.id}
+                                                >
+                                                    Iniciar
+                                                </Button>
+                                            )}
 
-                {/* --------------------- EM ATENDIMENTO --------------------- */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 2, height: '75vh', display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="h6" fontWeight="bold" color="info.main">
-                            Em Atendimento
-                        </Typography>
-                        <Divider sx={{ my: 1 }} />
+                                            {item.status === 'EM_ATENDIMENTO' && (
+                                                <>
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        color="success"
+                                                        onClick={() =>
+                                                            atualizarStatus(item.id, 'CONCLUIDO')
+                                                        }
+                                                        disabled={updatingId === item.id}
+                                                    >
+                                                        Concluir
+                                                    </Button>
 
-                        <Box sx={{ overflowY: 'auto', pr: 1 }}>
-                            {emAtendimento.length === 0 ? (
-                                <Alert severity="info">Nenhum em atendimento.</Alert>
-                            ) : (
-                                emAtendimento.map(item => (
-                                    <Paper key={item.id} sx={{ p: 2, mb: 2 }} variant="outlined">
-                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography fontWeight="bold">{item.nomeSolicitante}</Typography>
-                                            <Chip label={item.status} color="info" size="small" />
-                                        </Box>
-
-                                        <Typography variant="body2" mt={1}>
-                                            <strong>Serviço: </strong>
-                                            {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label}
-                                        </Typography>
-
-                                        <Typography variant="body2">
-                                            <strong>CPF:</strong> {item.cpf}
-                                        </Typography>
-
-                                        <Box display="flex" gap={1} mt={1}>
-                                            <Button
-                                                variant="contained"
-                                                color="success"
-                                                size="small"
-                                                onClick={() => atualizarStatus(item.id, 'CONCLUIDO')}
-                                                disabled={updatingId === item.id}
-                                            >
-                                                Concluir
-                                            </Button>
-
-                                            <Button
-                                                variant="outlined"
-                                                color="error"
-                                                size="small"
-                                                onClick={() => atualizarStatus(item.id, 'CANCELADO')}
-                                                disabled={updatingId === item.id}
-                                            >
-                                                Cancelar
-                                            </Button>
+                                                    <Button
+                                                        size="small"
+                                                        variant="outlined"
+                                                        color="error"
+                                                        onClick={() =>
+                                                            atualizarStatus(item.id, 'CANCELADO')
+                                                        }
+                                                        disabled={updatingId === item.id}
+                                                    >
+                                                        Cancelar
+                                                    </Button>
+                                                </>
+                                            )}
                                         </Box>
                                     </Paper>
-                                ))
-                            )}
-                        </Box>
-                    </Paper>
-                </Grid>
-
-                {/* --------------------- CONCLUÍDOS --------------------- */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 2, height: '75vh', display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="h6" fontWeight="bold" color="success.main">
-                            Concluídos
-                        </Typography>
-                        <Divider sx={{ my: 1 }} />
-
-                        <Box sx={{ overflowY: 'auto', pr: 1 }}>
-                            {concluidos.length === 0 ? (
-                                <Alert severity="info">Nenhum concluído.</Alert>
-                            ) : (
-                                concluidos.map(item => (
-                                    <Paper key={item.id} sx={{ p: 2, mb: 2 }} variant="outlined">
-                                        <Box display="flex" justifyContent="space-between">
-                                            <Typography fontWeight="bold">{item.nomeSolicitante}</Typography>
-                                            <Chip label="CONCLUÍDO" color="success" size="small" />
-                                        </Box>
-
-                                        <Typography variant="body2" mt={1}>
-                                            <strong>Serviço: </strong>
-                                            {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label}
-                                        </Typography>
-
-                                        <Typography variant="body2">
-                                            <strong>Chegada:</strong> {formatData(item.dataHoraChegada)}
-                                        </Typography>
-                                    </Paper>
-                                ))
-                            )}
-                        </Box>
-                    </Paper>
-                </Grid>
-
-                {/* --------------------- CANCELADOS --------------------- */}
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 2, height: '75vh', display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="h6" fontWeight="bold" color="error.main">
-                            Cancelados
-                        </Typography>
-                        <Divider sx={{ my: 1 }} />
-
-                        <Box sx={{ overflowY: 'auto', pr: 1 }}>
-                            {cancelados.length === 0 ? (
-                                <Alert severity="info">Nenhum cancelado.</Alert>
-                            ) : (
-                                cancelados.map(item => (
-                                    <Paper key={item.id} sx={{ p: 2, mb: 2 }} variant="outlined">
-                                        <Box display="flex" justifyContent="space-between">
-                                            <Typography fontWeight="bold">{item.nomeSolicitante}</Typography>
-                                            <Chip label="CANCELADO" color="error" size="small" />
-                                        </Box>
-
-                                        <Typography variant="body2" mt={1}>
-                                            <strong>Serviço: </strong>
-                                            {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label}
-                                        </Typography>
-
-                                        <Typography variant="body2">
-                                            <strong>Chegada:</strong> {formatData(item.dataHoraChegada)}
-                                        </Typography>
-                                    </Paper>
-                                ))
-                            )}
-                        </Box>
-                    </Paper>
-                </Grid>
-
+                                ))}
+                            </Box>
+                        </Paper>
+                    </Grid>
+                ))}
             </Grid>
 
-            {/* TOAST */}
+            {/* Toast */}
             <Snackbar
                 open={toast.open}
-                autoHideDuration={5000}
+                autoHideDuration={4000}
                 onClose={() => setToast({ ...toast, open: false })}
             >
-                <Alert severity={toast.severity}>{toast.message}</Alert>
+                <Alert severity={toast.severity}>
+                    {toast.message}
+                </Alert>
             </Snackbar>
+
         </Container>
     );
 }
