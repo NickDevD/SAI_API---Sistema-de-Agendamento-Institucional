@@ -2,7 +2,9 @@ package com.devtec.sai.controller;
 
 import com.devtec.sai.dto.AgendamentoResponseDTO;
 import com.devtec.sai.dto.AgendamentosRequestDTO;
+import com.devtec.sai.dto.AtualizarStatusDTO;
 import com.devtec.sai.model.Agendamento;
+import com.devtec.sai.model.StatusAgendamento;
 import com.devtec.sai.service.AgendamentoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/agendamentos")
@@ -27,10 +30,18 @@ public class AgendamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/{id}/status")
+    public ResponseEntity<AgendamentoResponseDTO> atualizarStatus(@PathVariable UUID id, @RequestBody @Valid AtualizarStatusDTO atualizar) {
+        AgendamentoResponseDTO novoStatus = agendamentoService.atualizarStatus(id,atualizar.status());
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoStatus);
+    }
+
     @GetMapping("/consultar_agendamentos")
     public ResponseEntity<List<AgendamentoResponseDTO>> consultarAgendamentos() {
         List<AgendamentoResponseDTO> consultar =  agendamentoService.consultar();
         return ResponseEntity.status(HttpStatus.OK).body(consultar);
     }
+
+
 
 }
