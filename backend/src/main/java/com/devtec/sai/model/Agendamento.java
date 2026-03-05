@@ -96,5 +96,6 @@ public class Agendamento {
     public void setStatus(StatusAgendamento status) {
         this.status = status;
     }
+
 }
 
