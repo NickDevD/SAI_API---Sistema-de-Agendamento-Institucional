@@ -12,4 +12,5 @@ public record AgendamentoResponseDTO(
        String tipoServico,
        LocalDateTime dataHoraChegada,
        StatusAgendamento status
+
 ) {}

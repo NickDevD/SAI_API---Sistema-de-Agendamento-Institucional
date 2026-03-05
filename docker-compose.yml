@@ -26,6 +26,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      - ./relatorios:/app/relatorios
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}

@@ -17,4 +17,5 @@ public record AgendamentosRequestDTO(
 
      @NotBlank(message = "O tipo de serviço é obrigatório")
      String tipoServico
+
 ) {}

@@ -36,6 +36,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
 
+
                         // Permitir requisições de preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 

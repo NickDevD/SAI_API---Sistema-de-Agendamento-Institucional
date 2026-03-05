@@ -182,6 +182,56 @@ export default function AgendamentoPage() {
         setUpdatingId(null);
     };
 
+    const fecharExpediente = async () => {
+
+        const confirm = window.confirm(
+            "Deseja fechar o expediente e gerar o relatório?"
+        );
+
+        if (!confirm) return;
+
+        try {
+
+            const response = await api.post(
+                "/agendamentos/fechar-expediente",
+                {},
+                { responseType: "blob" }
+            );
+
+            const blob = new Blob([response.data], { type: "application/pdf" });
+
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+
+            link.setAttribute(
+                "download",
+                `relatorio-expediente-${new Date().toISOString().slice(0,10)}.pdf`
+            );
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setToast({
+                open: true,
+                message: "Relatório do expediente gerado com sucesso.",
+                severity: "success"
+            });
+
+        } catch {
+
+            setToast({
+                open: true,
+                message: "Erro ao gerar relatório do expediente.",
+                severity: "error"
+            });
+
+        }
+
+    };
+
     // ---------- Filtros ----------
     const aguardando = agendamentos.filter(a => a.status === 'AGUARDANDO');
     const emAtendimento = agendamentos.filter(a => a.status === 'EM_ATENDIMENTO');
@@ -214,7 +264,7 @@ export default function AgendamentoPage() {
             </Box>
 
             {/* Button */}
-            <Box mb={3}>
+            <Box mb={3} display="flex" gap={2}>
                 <Button
                     variant="contained"
                     color="secondary"
@@ -222,6 +272,14 @@ export default function AgendamentoPage() {
                     onClick={() => setModalOpen(true)}
                 >
                     Novo Agendamento
+                </Button>
+
+                <Button
+                    variant="contained"
+                    color="error"
+                    onClick={fecharExpediente}
+                >
+                    Fechar Expediente
                 </Button>
             </Box>
 
