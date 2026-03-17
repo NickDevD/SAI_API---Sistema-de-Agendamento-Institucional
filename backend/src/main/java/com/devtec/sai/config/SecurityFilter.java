@@ -52,6 +52,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
+
         // Ignora autenticação em login/register e docs/swagger
         return path.contains("/api/v1/auth/login")
                 || path.contains("/api/v1/auth/register")
