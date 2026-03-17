@@ -246,7 +246,7 @@ export default function AgendamentoPage() {
         transform: 'translate(-50%, -50%)',
         width: '95%',
         maxWidth: 500,
-        bgcolor: 'background.paper',
+        bgcolor: "#f5f5f5",
         borderRadius: 3,
         boxShadow: 24,
         p: 4,
