@@ -1,11 +1,14 @@
 com\devtec\sai\dto\AuthenticationDTO.class
+com\devtec\sai\service\RelatorioService.class
 com\devtec\sai\model\Agendamento.class
 com\devtec\sai\config\SecurityConfigurations.class
 com\devtec\sai\dto\AgendamentoResponseDTO.class
+com\devtec\sai\config\DefaultUserSeeder.class
 com\devtec\sai\config\SecurityFilter.class
 com\devtec\sai\dto\RegisterDTO.class
 com\devtec\sai\repository\UsuarioRepository.class
 com\devtec\sai\service\TokenService.class
+com\devtec\sai\dto\AtualizarStatusDTO.class
 com\devtec\sai\model\UserRole.class
 com\devtec\sai\dto\ErrorResponseDTO.class
 com\devtec\sai\exception\GlobalExceptionHandler.class
@@ -16,6 +19,7 @@ com\devtec\sai\service\AgendamentoService.class
 com\devtec\sai\dto\FieldErrorDTO.class
 com\devtec\sai\repository\AgendamentosRepository.class
 com\devtec\sai\dto\AgendamentosRequestDTO.class
+com\devtec\sai\util\GenerateHash.class
 com\devtec\sai\controller\AgendamentoController.class
 com\devtec\sai\model\Usuario.class
 com\devtec\sai\controller\AuthenticationController.class

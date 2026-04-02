@@ -1,6 +1,7 @@
 package com.devtec.sai.service;
 
 import com.devtec.sai.model.Agendamento;
+import com.devtec.sai.model.Usuario;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
