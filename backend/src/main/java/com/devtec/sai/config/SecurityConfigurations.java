@@ -35,9 +35,10 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
 
+
                         // Endpoints de Autenticação
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
 
                         // Permitir requisições
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

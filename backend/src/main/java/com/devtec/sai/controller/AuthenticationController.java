@@ -38,7 +38,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data){
         if (usuarioRepository.findByLogin(data.login()) != null){
