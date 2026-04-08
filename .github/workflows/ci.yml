@@ -1,0 +1,31 @@
+name: CI Backend
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v3
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: 📦 Build com Maven
+        run: cd backend && mvn clean package -DskipTests
+
+      - name: 🐳 Build da imagem Docker
+        run: docker build -t backend-api ./backend
+
+      - name: 🚀 Teste do container
+        run: |
+          docker run -d -p 8080:8080 backend-api
+          sleep 15
+          curl -f http://localhost:8080 || exit 1
