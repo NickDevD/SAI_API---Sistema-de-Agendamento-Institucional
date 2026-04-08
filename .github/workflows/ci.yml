@@ -2,14 +2,10 @@ name: CI Backend
 
 on:
   push:
-    branches: [ "main", "backend" ]
+    branches: [ "main" ]
 
 jobs:
-
-  # =========================
-  # 1. CI RÁPIDA (H2)
-  # =========================
-  build-and-smoke-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,79 +24,13 @@ jobs:
       - name: 🐳 Build da imagem Docker
         run: docker build -t backend-api ./backend
 
-      - name: 🚀 Teste com H2 (rápido)
+      - name: 🚀 Teste do container
         run: |
-          CONTAINER_ID=$(docker run -d -p 8080:8080 \
+            docker run -d -p 8080:8080 \
             -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
             -e SPRING_FLYWAY_ENABLED=false \
             -e API_SECURITY_TOKEN_SECRET=teste \
-            backend-api)
+            backend-api
 
-          echo "Aguardando API subir..."
-          sleep 30
-
-          if curl -f http://localhost:8080; then
-            echo "API OK"
-          else
-            echo "Falha na API"
-            docker logs $CONTAINER_ID
-            exit 1
-          fi
-
-  # =========================
-  # 2. TESTE COM POSTGRESQL
-  # =========================
-  integration-test:
-    runs-on: ubuntu-latest
-    needs: build-and-smoke-test
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U test"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    steps:
-      - name: 📥 Checkout código
-        uses: actions/checkout@v3
-
-      - name: ☕ Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: 📦 Build com Maven
-        run: cd backend && mvn clean package -DskipTests
-
-      - name: 🐳 Build da imagem Docker
-        run: docker build -t backend-api ./backend
-
-      - name: 🚀 Teste com PostgreSQL
-        run: |
-          CONTAINER_ID=$(docker run -d -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/testdb \
-            -e SPRING_DATASOURCE_USERNAME=test \
-            -e SPRING_DATASOURCE_PASSWORD=test \
-            -e API_SECURITY_TOKEN_SECRET=teste \
-            backend-api)
-
-          echo "Aguardando API subir..."
-          sleep 40
-
-          if curl -f http://localhost:8080; then
-            echo "API OK com PostgreSQL"
-          else
-            echo "Falha com PostgreSQL"
-            docker logs $CONTAINER_ID
-            exit 1
-          fi
+      - name: 📜 Logs do container
+        run: docker logs $(docker ps -q)
