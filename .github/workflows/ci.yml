@@ -29,3 +29,6 @@ jobs:
           docker run -d -p 8080:8080 backend-api
           sleep 40
           curl -f http://localhost:8080 || exit 1
+
+      - name: 📜 Logs do container
+        run: docker logs $(docker ps -q)
