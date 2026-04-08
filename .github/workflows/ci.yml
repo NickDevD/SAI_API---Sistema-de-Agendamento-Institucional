@@ -29,7 +29,7 @@ jobs:
         run: |
           CONTAINER_ID=$(docker run -d -p 8080:8080 \
           -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
-          -e SPRING_FLYWAY_ENABLED=false \
+          -e SPRING_FLYWAY_ENABLED=true \
           -e API_SECURITY_TOKEN_SECRET=teste \
           backend-api)
 
