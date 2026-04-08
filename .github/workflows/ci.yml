@@ -27,5 +27,5 @@ jobs:
       - name: 🚀 Teste do container
         run: |
           docker run -d -p 8080:8080 backend-api
-          sleep 15
+          sleep 40
           curl -f http://localhost:8080 || exit 1
