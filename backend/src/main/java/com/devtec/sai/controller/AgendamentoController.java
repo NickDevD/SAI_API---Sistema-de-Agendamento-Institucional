@@ -3,12 +3,11 @@ package com.devtec.sai.controller;
 import com.devtec.sai.dto.AgendamentoResponseDTO;
 import com.devtec.sai.dto.AgendamentosRequestDTO;
 import com.devtec.sai.dto.AtualizarStatusDTO;
-import com.devtec.sai.model.Agendamento;
-import com.devtec.sai.model.StatusAgendamento;
 import com.devtec.sai.service.AgendamentoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +41,22 @@ public class AgendamentoController {
         return ResponseEntity.status(HttpStatus.OK).body(consultar);
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/fechar-expediente")
+    public ResponseEntity<org.springframework.core.io.Resource> fecharExpediente() {
+
+        java.io.File file = agendamentoService.fecharExpediente();
+
+        org.springframework.core.io.Resource resource =
+                new org.springframework.core.io.FileSystemResource(file);
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=" + file.getName())
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/pdf")
+                .body(resource);
+    }
 
 
 }

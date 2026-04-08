@@ -61,5 +61,5 @@ O Flyway cuidará das migrações e criará as tabelas tb_usuarios e tb_agendame
 #### 🛠 Solução de Problemas
 - Em caso de problemas de conexão com o banco de dados, verifique as credenciais no seu arquivo .env.
 
-- Em caso de erros de segurança (403/401), verifique se o Token no Swagger está fresco e se foi colado com o prefixo Bearer (com espaço).
+- Em caso de erros de segurança (403/401), verifique se o Token no Swagger está fresco e, se foi colado com o prefixo Bearer (com espaço).
 - Verificar se a classe SwaggerConfig.java está aplicada a toda API, para evitar que o token não seja reconhecido. 

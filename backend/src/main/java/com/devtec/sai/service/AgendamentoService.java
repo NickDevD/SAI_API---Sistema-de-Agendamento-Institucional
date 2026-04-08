@@ -7,6 +7,8 @@ import com.devtec.sai.model.StatusAgendamento;
 import com.devtec.sai.repository.AgendamentosRepository;
 import org.springframework.stereotype.Service;
 
+
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,9 +16,11 @@ import java.util.UUID;
 public class AgendamentoService {
 
     private final AgendamentosRepository repository;
+    private final RelatorioService relatorioService;
 
-    public AgendamentoService(AgendamentosRepository repository) {
+    public AgendamentoService(AgendamentosRepository repository, RelatorioService relatorioService) {
         this.repository = repository;
+        this.relatorioService = relatorioService;
     }
 
     public AgendamentoResponseDTO criar(AgendamentosRequestDTO dados) {
@@ -72,5 +76,16 @@ public class AgendamentoService {
                 atualizado.getDataHoraChegada(),
                 atualizado.getStatus()
         );
+    }
+
+    public File fecharExpediente() {
+
+        List<Agendamento> hoje = repository.findAll();
+
+        File file = relatorioService.gerarRelatorio(hoje);
+
+        repository.deleteAll();
+
+        return file;
     }
 }

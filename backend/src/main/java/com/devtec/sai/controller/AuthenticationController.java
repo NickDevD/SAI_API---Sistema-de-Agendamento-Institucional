@@ -8,6 +8,7 @@ import com.devtec.sai.repository.UsuarioRepository;
 import com.devtec.sai.service.TokenService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,7 @@ public class AuthenticationController {
         this.usuarioRepository = usuarioRepository;
         this.tokenService = tokenService;
     }
+
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
