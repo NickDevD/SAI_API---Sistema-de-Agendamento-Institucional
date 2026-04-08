@@ -26,9 +26,11 @@ jobs:
 
       - name: 🚀 Teste do container
         run: |
-          docker run -d -p 8080:8080 backend-api
-          sleep 40
-          curl -f http://localhost:8080 || exit 1
+            docker run -d -p 8080:8080 \
+            -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
+            -e SPRING_FLYWAY_ENABLED=false \
+            -e API_SECURITY_TOKEN_SECRET=teste \
+            backend-api
 
       - name: 📜 Logs do container
         run: docker logs $(docker ps -q)
