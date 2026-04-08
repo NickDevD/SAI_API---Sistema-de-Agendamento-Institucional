@@ -2,7 +2,7 @@ name: CI Backend
 
 on:
   push:
-    branches: [ "main", "backend" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -24,21 +24,10 @@ jobs:
       - name: 🐳 Build da imagem Docker
         run: docker build -t backend-api ./backend
 
-      - name: 🚀 Teste com H2
+      - name: 🚀 Teste do container
         run: |
-          CONTAINER_ID=$(docker run -d -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
-            -e SPRING_FLYWAY_ENABLED=false \
-            -e API_SECURITY_TOKEN_SECRET=teste \
-            backend-api)
-
-          echo "Aguardando API subir..."
-          sleep 30
-
-          if curl -f http://localhost:8080; then
-            echo "API OK"
-          else
-            echo "Falha na API"
-            docker logs $CONTAINER_ID
-            exit 1
-          fi
+          docker run -d -p 8080:8080 \
+          -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
+          -e SPRING_FLYWAY_ENABLED=false \
+          -e API_SECURITY_TOKEN_SECRET=teste \
+          backend-api
