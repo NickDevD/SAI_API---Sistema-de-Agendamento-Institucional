@@ -4,9 +4,11 @@ import com.devtec.sai.model.Usuario;
 import com.devtec.sai.model.UserRole;
 import com.devtec.sai.repository.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+@Profile("dev")
 @Component // Garante que o Spring encontre e execute esta classe na inicialização
 public class DefaultUserSeeder implements CommandLineRunner {
 
@@ -19,12 +21,13 @@ public class DefaultUserSeeder implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Este método é executado uma vez, logo após a inicialização da aplicação
+    // Este metodo e executado uma vez, logo após a inicialização da aplicação
     @Override
     public void run(String... args) throws Exception {
         try {
             if (usuarioRepository.findByLogin("admin") == null) {
-                String senhaCodificada = passwordEncoder.encode("123456");
+                String senha = System.getenv("DEFAULT_USER_PASSWORD");
+                String senhaCodificada = passwordEncoder.encode(senha);
                 Usuario admin = new Usuario("admin", senhaCodificada, UserRole.ADMIN);
                 usuarioRepository.save(admin);
                 System.out.println("✅ USUÁRIO ADMIN SALVO!");

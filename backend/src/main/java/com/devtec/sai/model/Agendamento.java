@@ -65,10 +65,6 @@ public class Agendamento {
         this.cpf = cpf;
     }
 
-    public String getRg() {
-        return rg;
-    }
-
     public void setRg(String rg) {
         this.rg = rg;
     }
@@ -85,10 +81,6 @@ public class Agendamento {
         return dataHoraChegada;
     }
 
-    public void setDataHoraChegada(LocalDateTime dataHoraChegada) {
-        this.dataHoraChegada = dataHoraChegada;
-    }
-
     public StatusAgendamento getStatus() {
         return status;
     }
@@ -96,5 +88,6 @@ public class Agendamento {
     public void setStatus(StatusAgendamento status) {
         this.status = status;
     }
+
 }
 
