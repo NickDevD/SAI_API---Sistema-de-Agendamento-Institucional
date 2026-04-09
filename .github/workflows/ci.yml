@@ -1,43 +1,57 @@
-name: CI Backend
+name: CI/CD Backend
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - name: 📥 Checkout código
+      - name: Checkout código
         uses: actions/checkout@v3
 
-      - name: ☕ Setup Java
+      - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: 21
 
-      - name: 📦 Build com Maven
+      - name: Build projeto
         run: |
           cd backend
           mvn clean package -DskipTests
 
-      - name: 🐳 Build Docker
+      - name: Build Docker
         run: docker build -t backend-api ./backend
 
-      - name: 🚀 Teste do container (H2)
+      - name: Rodar container
         run: |
           docker run -d -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
-            -e SPRING_DATASOURCE_USERNAME=sa \
-            -e SPRING_DATASOURCE_PASSWORD= \
-            -e SPRING_FLYWAY_ENABLED=false \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/testdb \
+            -e SPRING_DATASOURCE_USERNAME=test \
+            -e SPRING_DATASOURCE_PASSWORD=test \
             -e JWT_SECRET=teste \
             backend-api
 
-      - name: ⏳ Aguardar subir
-        run: sleep 15
+      - name: Aguardar app subir
+        run: sleep 20
 
-      - name: 🔎 Health check
+      - name: Health check
         run: curl --fail http://localhost:8080/actuator/health
