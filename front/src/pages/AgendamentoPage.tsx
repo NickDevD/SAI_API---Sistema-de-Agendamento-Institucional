@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Unstable_Grid2';
 
 import {
     Container,
@@ -35,7 +35,7 @@ import axios from 'axios';
 
 // ---------- API ----------
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api/v1',
+    baseURL: import.meta.env.VITE_API_URL,
 });
 
 api.interceptors.request.use((config) => {
