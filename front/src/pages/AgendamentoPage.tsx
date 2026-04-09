@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid2';
 
 import {
     Container,
@@ -410,7 +410,7 @@ export default function AgendamentoPage() {
                     { title: 'Em Atendimento', data: emAtendimento },
                     { title: 'Concluídos', data: concluidos },
                     { title: 'Cancelados', data: cancelados }].map(col => (
-                    <Grid item xs={12} sm={6} md={3} key={col.title}>
+                    <Grid xs={12} sm={6} md={3} key={col.title}>
                         <Paper
                             sx={{
                                 p: 2,
