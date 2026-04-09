@@ -41,6 +41,12 @@ jobs:
       - name: Build Docker
         run: docker build -t backend-api ./backend
 
+      - name: Build Docker
+        run: docker build -t backend-api ./backend
+
+      - name: Aguardar PostgreSQL
+        run: sleep 15
+
       - name: Rodar container
         run: |
           docker run -d -p 8080:8080 \
@@ -50,8 +56,16 @@ jobs:
             -e JWT_SECRET=teste \
             backend-api
 
-      - name: Aguardar app subir
-        run: sleep 20
+      - name: Ver logs
+        run: docker logs $(docker ps -q)
 
-      - name: Health check
+      - name: Aguardar app subir
+        run: |
+          for i in {1..30}; do
+            curl -s http://localhost:8080/actuator/health && break
+            echo "Aguardando aplicação..."
+            sleep 5
+          done
+
+      - name: Health check final
         run: curl --fail http://localhost:8080/actuator/health
