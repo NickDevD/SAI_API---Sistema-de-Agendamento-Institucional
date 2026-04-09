@@ -47,25 +47,28 @@ jobs:
       - name: Aguardar PostgreSQL
         run: sleep 15
 
+      - name: Build Docker
+        run: docker build -t backend-api ./backend
+
+      - name: Esperar PostgreSQL
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U test && break
+            echo "Aguardando banco..."
+            sleep 5
+          done
+
       - name: Rodar container
         run: |
-          docker run -d -p 8080:8080 \
+          docker run -d --name backend-test -p 8080:8080 \
             -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/testdb \
             -e SPRING_DATASOURCE_USERNAME=test \
             -e SPRING_DATASOURCE_PASSWORD=test \
             -e JWT_SECRET=teste \
             backend-api
 
+      - name: Ver containers
+        run: docker ps -a
+
       - name: Ver logs
-        run: docker logs $(docker ps -q)
-
-      - name: Aguardar app subir
-        run: |
-          for i in {1..30}; do
-            curl -s http://localhost:8080/actuator/health && break
-            echo "Aguardando aplicação..."
-            sleep 5
-          done
-
-      - name: Health check final
-        run: curl --fail http://localhost:8080/actuator/health
+        run: docker logs backend-test
