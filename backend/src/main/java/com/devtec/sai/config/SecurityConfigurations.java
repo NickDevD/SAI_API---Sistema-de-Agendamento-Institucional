@@ -39,7 +39,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
 
-                        // Permitir Pre-flight (essencial para CORS)
+                        // Permitir Pre-flight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Swagger e Error
@@ -55,7 +55,7 @@ public class SecurityConfigurations {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // ADICIONE A URL DA VERCEL AQUI
+        // URL DA VERCEL
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "https://sai-api-sistema-de-agendamento-inst.vercel.app"
