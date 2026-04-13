@@ -406,105 +406,116 @@ export default function AgendamentoPage() {
             </Modal>
 
             {/* KANBAN */}
-            <Grid container spacing={3}>
+            <Grid container spacing={3} sx={{ width: '100%', m: 0, mt: 2 }}>
                 {[{ title: 'Aguardando', data: aguardando },
                     { title: 'Em Atendimento', data: emAtendimento },
                     { title: 'Concluídos', data: concluidos },
                     { title: 'Cancelados', data: cancelados }].map(col => (
-                    <Grid xs={12} sm={6} md={3} key={col.title}>
+                    <Grid item xs={12} sm={6} md={3} key={col.title}> {/* ADICIONADO "item" AQUI */}
                         <Paper
+                            elevation={2}
                             sx={{
                                 p: 2,
-                                height: 'calc(100vh - 260px)',
+                                height: 'calc(100vh - 250px)',
                                 display: 'flex',
-                                flexDirection: 'column'
+                                flexDirection: 'column',
+                                backgroundColor: '#f5f5f5', // Um fundo leve para destacar as colunas
+                                borderRadius: 2
                             }}
                         >
-                            <Typography variant="h6" fontWeight="bold">
-                                {col.title}
+                            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1, px: 1 }}>
+                                {col.title} ({col.data.length})
                             </Typography>
 
-                            <Divider sx={{ my: 1 }} />
+                            <Divider sx={{ mb: 2, borderBottomWidth: 2 }} />
 
-                            <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
+                            <Box sx={{
+                                flex: 1,
+                                overflowY: 'auto',
+                                pr: 0.5,
+                                '&::-webkit-scrollbar': { width: '6px' },
+                                '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: '10px' }
+                            }}>
                                 {col.data.map(item => (
                                     <Paper
                                         key={item.id}
-                                        variant="outlined"
+                                        elevation={1}
                                         sx={{
                                             p: 2,
                                             mb: 2,
-                                            borderLeft: `6px solid ${statusColorMap[item.status]}`
+                                            borderLeft: `6px solid ${statusColorMap[item.status] || '#ccc'}`,
+                                            borderRadius: '8px',
+                                            transition: '0.3s',
+                                            '&:hover': { boxShadow: 4 }
                                         }}
                                     >
                                         <Box display="flex" gap={1} mb={1} flexWrap="wrap">
-                                            <Chip label={item.status} size="small" />
+                                            <Chip
+                                                label={item.status.replace('_', ' ')}
+                                                size="small"
+                                                sx={{ fontSize: '0.65rem', height: 20 }}
+                                            />
                                             {prioridadeShortLabel(item.prioridade) && (
                                                 <Chip
                                                     label={prioridadeShortLabel(item.prioridade)}
                                                     color="error"
                                                     size="small"
+                                                    sx={{ fontSize: '0.65rem', height: 20 }}
                                                 />
                                             )}
                                         </Box>
 
-                                        <Typography fontWeight="bold">
+                                        <Typography variant="body1" fontWeight="bold">
                                             {item.nomeSolicitante}
                                         </Typography>
 
-                                        <Typography variant="body2" mt={1}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                                             <strong>Serviço:</strong>{' '}
-                                            {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label}
+                                            {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label || item.tipoServico}
                                         </Typography>
 
                                         {item.dataHoraChegada && (
-                                            <Typography variant="body2">
-                                                <strong>Data:</strong>{' '}
-                                                {new Date(item.dataHoraChegada).toLocaleDateString()} {' '}
-                                                <strong>Hora:</strong>{' '}
-                                                {new Date(item.dataHoraChegada).toLocaleTimeString([], {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
+                                            <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                                <strong>📅</strong> {new Date(item.dataHoraChegada).toLocaleDateString()}
+                                                <strong> 🕒</strong> {new Date(item.dataHoraChegada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </Typography>
                                         )}
 
-                                        <Box display="flex" gap={1} mt={1.5} flexWrap="wrap">
+                                        <Box display="flex" gap={1} mt={2} flexWrap="wrap">
                                             {item.status === 'AGUARDANDO' && (
                                                 <Button
+                                                    fullWidth
                                                     size="small"
                                                     variant="contained"
-                                                    onClick={() =>
-                                                        atualizarStatus(item.id, 'EM_ATENDIMENTO')
-                                                    }
+                                                    onClick={() => atualizarStatus(item.id, 'EM_ATENDIMENTO')}
                                                     disabled={updatingId === item.id}
                                                 >
-                                                    Iniciar
+                                                    Iniciar Atendimento
                                                 </Button>
                                             )}
 
                                             {item.status === 'EM_ATENDIMENTO' && (
                                                 <>
                                                     <Button
+                                                        flex={1}
                                                         size="small"
                                                         variant="contained"
                                                         color="success"
-                                                        onClick={() =>
-                                                            atualizarStatus(item.id, 'CONCLUIDO')
-                                                        }
+                                                        onClick={() => atualizarStatus(item.id, 'CONCLUIDO')}
                                                         disabled={updatingId === item.id}
+                                                        sx={{ minWidth: '80px' }}
                                                     >
                                                         Concluir
                                                     </Button>
 
                                                     <Button
+                                                        flex={1}
                                                         size="small"
                                                         variant="outlined"
                                                         color="error"
-                                                        onClick={() =>
-                                                            atualizarStatus(item.id, 'CANCELADO')
-                                                        }
+                                                        onClick={() => atualizarStatus(item.id, 'CANCELADO')}
                                                         disabled={updatingId === item.id}
+                                                        sx={{ minWidth: '80px' }}
                                                     >
                                                         Cancelar
                                                     </Button>
