@@ -497,25 +497,23 @@ export default function AgendamentoPage() {
                                             {item.status === 'EM_ATENDIMENTO' && (
                                                 <>
                                                     <Button
-                                                        flex={1}
                                                         size="small"
                                                         variant="contained"
                                                         color="success"
                                                         onClick={() => atualizarStatus(item.id, 'CONCLUIDO')}
                                                         disabled={updatingId === item.id}
-                                                        sx={{ minWidth: '80px' }}
+                                                        sx={{  flex:1, minWidth: '80px' }}
                                                     >
                                                         Concluir
                                                     </Button>
 
                                                     <Button
-                                                        flex={1}
                                                         size="small"
                                                         variant="outlined"
                                                         color="error"
                                                         onClick={() => atualizarStatus(item.id, 'CANCELADO')}
                                                         disabled={updatingId === item.id}
-                                                        sx={{ minWidth: '80px' }}
+                                                        sx={{ flex:1, minWidth: '80px' }}
                                                     >
                                                         Cancelar
                                                     </Button>
