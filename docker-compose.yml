@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. SERVIÇO DO BANCO DE DADOS
+  # 1. BANCO DE DADOS
   postgres-db:
     image: postgres:16-alpine
     restart: always
@@ -12,14 +12,14 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 2. SERVIÇO DO BACKEND
+  # 2. BACKEND
   backend-api:
     build:
       context: ./backend
@@ -32,12 +32,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      API_SECURITY_TOKEN_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 8080
     depends_on:
       postgres-db:
         condition: service_healthy
 
-  # 3. SERVIÇO DO FRONTEND
+  # 3. FRONTEND
   frontend-app:
     build:
       context: ./front

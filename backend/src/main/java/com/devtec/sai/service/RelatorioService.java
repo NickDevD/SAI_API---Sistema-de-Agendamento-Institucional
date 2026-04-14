@@ -23,8 +23,11 @@ public class RelatorioService {
 
         try {
 
-            File pasta = new File("relatorios");
+            File pasta = new File("/app/relatorios");
 
+            if (!pasta.exists()) {
+                pasta.mkdirs();
+            }
 
             String nomeArquivo = "relatorio_" + LocalDate.now() + ".pdf";
             File file = new File(pasta, nomeArquivo);
