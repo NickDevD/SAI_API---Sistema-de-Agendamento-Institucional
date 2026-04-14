@@ -10,6 +10,7 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
+
 # ===== RUNTIME STAGE =====
 FROM eclipse-temurin:21-jre-jammy
 
@@ -17,8 +18,13 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-# Segurança: rodar como usuário não-root
+# 🔥 CRIA USUÁRIO PRIMEIRO
 RUN useradd -m appuser
+
+# 🔥 CRIA PASTA E DÁ PERMISSÃO
+RUN mkdir -p /app/relatorios && chown -R appuser:appuser /app
+
+# Segurança
 USER appuser
 
 EXPOSE 8080

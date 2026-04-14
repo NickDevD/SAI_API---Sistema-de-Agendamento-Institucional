@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "https://sai-api-sistema-de-agendamento-inst.vercel.app")
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
