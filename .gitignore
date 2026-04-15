@@ -2,3 +2,4 @@
 .idea
 .env
 .application-dev.properties
+.node_modules
