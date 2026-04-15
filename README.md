@@ -6,6 +6,11 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791?style=flat&logo=postgresql)
 ![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=flat)
 
+**URLs de Deploy:**
+>🔗 Backend: https://sai-api-sistema-de-agendamento.onrender.com
+
+>🔗 Frontend: https://sai-api-sistema-de-agendamento-inst.vercel.app/
+
 ## 📋 Visão Geral do Projeto
 
 O **SAI** (Sistema de Agendamento Institucional) é uma aplicação moderna desenvolvida com uma arquitetura que separa completamente o Frontend e o Backend, permitindo escalabilidade e manutenção independente.
@@ -158,10 +163,8 @@ Este projeto conta com **automação completa** através de:
 - Logs centralizados e monitoramento
 
 **URLs de Deploy:**
-- 🔗 Backend: `https://sai-api.render.com` (substitua pelo seu domínio Render)
-- 🔗 Frontend: `https://sai-app.render.com` (substitua pelo seu domínio Render)
-
-> Para acessar os links corretos, verifique seu dashboard no [Render](https://render.com)
+- 🔗 Backend: `https://sai-api-sistema-de-agendamento.onrender.com` 
+- 🔗 Frontend: `https://sai-api-sistema-de-agendamento-inst.vercel.app/` 
 
 ## 🤝 Colaboração
 
@@ -238,4 +241,6 @@ Este projeto está sob a licença [MIT](LICENSE).
 
 ---
 
-**⭐ Se este projeto foi útil, considere deixar uma estrela! ⭐** 
+**⭐ Se este projeto foi útil, considere deixar uma estrela! ⭐**
+
+
