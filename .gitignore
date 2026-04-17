@@ -1,5 +1,11 @@
 ### IntelliJ IDEA ###
 .idea
 .env
-.application-dev.properties
 .node_modules
+.CI-CD-PIPELINE
+.DS_Store
+.CORS-CONFIGURATION.md
+.DEPLOY-AWS.md
+.DEPLOY-RENDER.md
+.QUICK-START-CICD.md
+.SETUP-CICD-STEP-BY-STEP.md
