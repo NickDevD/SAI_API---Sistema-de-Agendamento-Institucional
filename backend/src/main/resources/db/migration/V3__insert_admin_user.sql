@@ -1,5 +1,5 @@
 INSERT INTO tb_usuarios (id, login, senha, role)
-SELECT gen_random_uuid(), '${FLYWAY_PLACEHOLDERS_ADMIN_LOGIN}', '${FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH}', 'ADMIN'
+SELECT gen_random_uuid(), '${ADMIN_LOGIN}', '${ADMIN_PASSWORD_HASH}', 'ADMIN'
     WHERE NOT EXISTS (
-    SELECT 1 FROM tb_usuarios WHERE login = '${FLYWAY_PLACEHOLDERS_ADMIN_LOGIN}'
+    SELECT 1 FROM tb_usuarios WHERE login = '${ADMIN_LOGIN}'
 );
