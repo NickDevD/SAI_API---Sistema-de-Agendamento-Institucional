@@ -18,13 +18,10 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-# 🔥 CRIA USUÁRIO PRIMEIRO
 RUN useradd -m appuser
 
-# 🔥 CRIA PASTA E DÁ PERMISSÃO
 RUN mkdir -p /app/relatorios && chown -R appuser:appuser /app
 
-# Segurança
 USER appuser
 
 EXPOSE 8080
