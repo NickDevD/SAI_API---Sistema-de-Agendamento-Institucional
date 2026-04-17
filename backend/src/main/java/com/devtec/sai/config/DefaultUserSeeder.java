@@ -15,13 +15,13 @@ public class DefaultUserSeeder implements CommandLineRunner {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // O Spring injeta o Repositório e o Encoder configurado no SecurityConfigurations
+
     public DefaultUserSeeder(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Este metodo e executado uma vez, logo após a inicialização da aplicação
+
     @Override
     public void run(String... args) throws Exception {
         try {
