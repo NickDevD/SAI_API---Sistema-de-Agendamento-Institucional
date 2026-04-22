@@ -59,6 +59,7 @@ public class SecurityConfigurations {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "https://sai-api-sistema-de-agendamento-inst.vercel.app"
+
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
