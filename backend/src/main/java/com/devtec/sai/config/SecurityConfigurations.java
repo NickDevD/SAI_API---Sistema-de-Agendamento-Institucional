@@ -55,15 +55,17 @@ public class SecurityConfigurations {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // URL DA VERCEL
+        //⚠️ IMPORTANTE: Permita o Swagger e o seu futuro front
         configuration.setAllowedOrigins(Arrays.asList(
+                "https://sai-api-sistema-de-agendamento-inst.vercel.app",
+                "https://backend-api-301612765087.us-central1.run.app",
                 "http://localhost:5173",
-                "https://sai-api-sistema-de-agendamento-inst.vercel.app"
-
+                "https://editor.swagger.io"
         ));
 
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
