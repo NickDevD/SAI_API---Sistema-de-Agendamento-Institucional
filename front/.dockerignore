@@ -1,7 +1,7 @@
 # Exclui a pasta de dependências do Node
 node_modules
 # Exclui arquivos de build do Vite/React
-dist
+
 # Exclui logs de debug/npm
 npm-debug.log
 .DS_Store
