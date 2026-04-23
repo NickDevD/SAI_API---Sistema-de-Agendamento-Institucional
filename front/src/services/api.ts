@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Cria an instância base com a URL do Backend
-const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const BASE_URL = rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl : `${rawBaseUrl}/api/v1`;
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+
 
 export const api = axios.create({
     baseURL: BASE_URL,
