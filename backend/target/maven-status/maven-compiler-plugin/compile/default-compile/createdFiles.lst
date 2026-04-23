@@ -3,13 +3,13 @@ com\devtec\sai\service\RelatorioService.class
 com\devtec\sai\model\Agendamento.class
 com\devtec\sai\config\SecurityConfigurations.class
 com\devtec\sai\dto\AgendamentoResponseDTO.class
-com\devtec\sai\config\DefaultUserSeeder.class
 com\devtec\sai\config\SecurityFilter.class
 com\devtec\sai\dto\RegisterDTO.class
 com\devtec\sai\repository\UsuarioRepository.class
 com\devtec\sai\service\TokenService.class
 com\devtec\sai\dto\AtualizarStatusDTO.class
 com\devtec\sai\model\UserRole.class
+com\devtec\sai\config\AdminSetup.class
 com\devtec\sai\dto\ErrorResponseDTO.class
 com\devtec\sai\exception\GlobalExceptionHandler.class
 com\devtec\sai\SaiApplication.class
