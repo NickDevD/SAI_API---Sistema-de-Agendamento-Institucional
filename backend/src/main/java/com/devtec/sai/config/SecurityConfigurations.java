@@ -59,6 +59,8 @@ public class SecurityConfigurations {
         configuration.setAllowedOrigins(Arrays.asList(
                 "https://sai-api-sistema-de-agendamento-inst.vercel.app",
                 "https://backend-api-301612765087.us-central1.run.app",
+                "https://sai-agendamento-institucional.web.app",
+                "https://consulta-cep-api.web.app",
                 "http://localhost:5173",
                 "https://editor.swagger.io"
         ));
