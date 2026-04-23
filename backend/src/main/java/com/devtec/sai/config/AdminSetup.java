@@ -19,7 +19,7 @@ public class AdminSetup implements CommandLineRunner {
     private final UsuarioRepository repository;
     private final PasswordEncoder encoder;
 
-    @Value("${ADMIN_LOGIN}")
+    @Value("${ADMIN_LOGIN_LINE}")
     private String adminLogin;
 
     @Value("${ADMIN_PASSWORD_LINE}")
@@ -33,7 +33,6 @@ public class AdminSetup implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // The repository's findByLogin(...) returns UserDetails or null when not found.
         if (repository.findByLogin(adminLogin) == null) {
             Usuario admin = new Usuario(adminLogin, encoder.encode(adminPassword), UserRole.ADMIN);
             repository.save(admin);
