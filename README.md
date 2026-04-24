@@ -11,6 +11,8 @@
 
 >🔗 Frontend: https://sai-api-sistema-de-agendamento-inst.vercel.app/
 
+> 🧭 Nota para desenvolvedores: existe uma versão técnica focada em CI/CD, Cloud e DevOps em `README-DEV.md` (recomendado para mantenedores e recrutadores técnicos).
+
 ## 📋 Visão Geral do Projeto
 
 O **SAI** (Sistema de Agendamento Institucional) é uma aplicação moderna desenvolvida com uma arquitetura que separa completamente o Frontend e o Backend, permitindo escalabilidade e manutenção independente.
