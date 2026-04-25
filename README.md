@@ -1,9 +1,11 @@
 # 💻 SAI - Sistema de Agendamento Institucional
 
+[![CI](https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional/actions/workflows/ci.yml/badge.svg)](https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat&logo=spring-boot)
 ![React](https://img.shields.io/badge/React-TypeScript-61DAFB?style=flat&logo=react)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791?style=flat&logo=postgresql)
+![GCP](https://img.shields.io/badge/Cloud-GCP-blue?style=flat&logo=googlecloud)   
 ![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=flat)
 
 **URLs de Deploy:**
