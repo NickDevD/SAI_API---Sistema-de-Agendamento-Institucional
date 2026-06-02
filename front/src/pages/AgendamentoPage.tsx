@@ -192,9 +192,16 @@ export default function AgendamentoPage() {
     const atualizarStatus = async (id: string, status: Agendamento['status']) => {
         if (status === 'CANCELADO' && !window.confirm('Tem certeza que deseja cancelar este agendamento?')) return;
         setUpdatingId(id);
-        await api.post(`/agendamentos/${id}/status`, { status });
-        fetchAgendamentos();
-        setUpdatingId(null);
+        try {
+            await api.post(`/agendamentos/${id}/status`, { status });
+            await fetchAgendamentos();
+            setToast({ open: true, message: 'Status atualizado com sucesso!', severity: 'success' });
+        } catch (err) {
+            console.error('Erro ao atualizar status:', err);
+            setToast({ open: true, message: 'Erro ao atualizar o status. Tente novamente.', severity: 'error' });
+        } finally {
+            setUpdatingId(null);
+        }
     };
 
     const fecharExpediente = async () => {
