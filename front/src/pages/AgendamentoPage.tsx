@@ -127,20 +127,24 @@ const statusConfig: Record<
     Agendamento['status'],
     { label: string; color: string; bgColor: string; icon: React.ReactElement }
 > = {
-    AGUARDANDO:     { label: 'Aguardando',     color: '#E65100', bgColor: '#FFF3E0', icon: <HourglassTop     sx={{ fontSize: 12 }} /> },
-    EM_ATENDIMENTO: { label: 'Em Atendimento', color: '#0D47A1', bgColor: '#E3F2FD', icon: <SupportAgent      sx={{ fontSize: 12 }} /> },
+    AGUARDANDO:     { label: 'Aguardando',     color: '#E65100', bgColor: '#FFF3E0', icon: <HourglassTop      sx={{ fontSize: 12 }} /> },
+    EM_ATENDIMENTO: { label: 'Em Atendimento', color: '#0D47A1', bgColor: '#E3F2FD', icon: <SupportAgent       sx={{ fontSize: 12 }} /> },
     CONCLUIDO:      { label: 'Concluído',      color: '#1B5E20', bgColor: '#E8F5E9', icon: <CheckCircleOutline sx={{ fontSize: 12 }} /> },
-    CANCELADO:      { label: 'Cancelado',      color: '#B71C1C', bgColor: '#FFEBEE', icon: <Cancel            sx={{ fontSize: 12 }} /> },
+    CANCELADO:      { label: 'Cancelado',      color: '#B71C1C', bgColor: '#FFEBEE', icon: <Cancel             sx={{ fontSize: 12 }} /> },
 };
 
 const COLUNAS = [
-    { key: 'AGUARDANDO'     as const, title: 'Aguardando',      chip: { bg: '#FFF3E0', text: '#E65100' } },
-    { key: 'EM_ATENDIMENTO' as const, title: 'Em Atendimento',  chip: { bg: '#E3F2FD', text: '#0D47A1' } },
-    { key: 'CONCLUIDO'      as const, title: 'Concluídos',      chip: { bg: '#E8F5E9', text: '#1B5E20' } },
-    { key: 'CANCELADO'      as const, title: 'Cancelados',      chip: { bg: '#FFEBEE', text: '#B71C1C' } },
+    { key: 'AGUARDANDO'     as const, title: 'Aguardando',     chip: { bg: '#FFF3E0', text: '#E65100' } },
+    { key: 'EM_ATENDIMENTO' as const, title: 'Em Atendimento', chip: { bg: '#E3F2FD', text: '#0D47A1' } },
+    { key: 'CONCLUIDO'      as const, title: 'Concluídos',     chip: { bg: '#E8F5E9', text: '#1B5E20' } },
+    { key: 'CANCELADO'      as const, title: 'Cancelados',     chip: { bg: '#FFEBEE', text: '#B71C1C' } },
 ];
 
-const prioridadeLabel = (p: string) => (p === 'NORMAL' ? null : p.replace('_', ' '));
+// ✅ FIX 1: prioridadeLabel agora aceita null/undefined sem quebrar
+const prioridadeLabel = (p: string | null | undefined): string | null => {
+    if (!p || p === 'NORMAL') return null;
+    return p.replace('_', ' ');
+};
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function AgendamentoPage() {
@@ -164,11 +168,20 @@ export default function AgendamentoPage() {
         severity: 'success' as 'success' | 'error',
     });
 
-    // ── Fetch ──
+    // ✅ FIX 2: fetchAgendamentos normaliza todos os campos que podem vir null/undefined do backend
     const fetchAgendamentos = useCallback(async () => {
         try {
             const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
-            setAgendamentos(response.data);
+            const dados = (response.data ?? []).map((a) => ({
+                ...a,
+                nomeSolicitante: a.nomeSolicitante ?? '—',
+                cpf:             a.cpf             ?? '',
+                rg:              a.rg              ?? '',
+                tipoServico:     a.tipoServico     ?? '',
+                prioridade:      a.prioridade      ?? 'NORMAL',
+                status:          a.status          ?? 'AGUARDANDO',
+            }));
+            setAgendamentos(dados);
         } catch (err) {
             console.error('Erro ao buscar agendamentos:', err);
             setToast({ open: true, message: 'Erro ao carregar agendamentos.', severity: 'error' });
@@ -177,12 +190,15 @@ export default function AgendamentoPage() {
 
     useEffect(() => { fetchAgendamentos(); }, [fetchAgendamentos]);
 
-    // ── Submit ──
+    // ✅ FIX 3: handleSubmit usa optional chaining no CPF
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.post('/agendamentos/agendar', { ...formData, cpf: formData.cpf.replace(/\D/g, '') });
+            await api.post('/agendamentos/agendar', {
+                ...formData,
+                cpf: formData.cpf?.replace(/\D/g, '') ?? '',
+            });
             setToast({ open: true, message: 'Agendamento criado com sucesso!', severity: 'success' });
             setFormData({ nomeSolicitante: '', cpf: '', rg: '', tipoServico: '', prioridade: 'NORMAL', dataHoraChegada: '' });
             setModalOpen(false);
@@ -194,6 +210,7 @@ export default function AgendamentoPage() {
         }
     };
 
+    // ✅ FIX 4: atualizarStatus com try/catch completo
     const atualizarStatus = async (id: string, status: Agendamento['status']) => {
         if (status === 'CANCELADO' && !window.confirm('Tem certeza que deseja cancelar este agendamento?')) return;
         setUpdatingId(id);
@@ -221,9 +238,9 @@ export default function AgendamentoPage() {
             document.body.appendChild(link);
             link.click();
             link.remove();
-            setToast({ open: true, message: 'Relatório do expediente gerado com sucesso.', severity: 'success' });
+            setToast({ open: true, message: 'Relatório gerado com sucesso.', severity: 'success' });
         } catch {
-            setToast({ open: true, message: 'Erro ao gerar relatório do expediente.', severity: 'error' });
+            setToast({ open: true, message: 'Erro ao gerar relatório.', severity: 'error' });
         }
     };
 
@@ -235,16 +252,12 @@ export default function AgendamentoPage() {
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <ThemeProvider theme={crasTema}>
-            {/*
-             * ROOT: ocupa 100vh em tela cheia como flex‑column.
-             * Não usa Container para evitar maxWidth indesejado.
-             */}
             <Box sx={{
                 height: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
                 bgcolor: '#EDF1F8',
-                overflow: 'hidden',       // impede scroll da página no desktop
+                overflow: 'hidden',
             }}>
 
                 {/* ══ CABEÇALHO INSTITUCIONAL ══════════════════════════════ */}
@@ -313,11 +326,7 @@ export default function AgendamentoPage() {
                     </Box>
                 </Box>
 
-                {/* ══ ÁREA DE CONTEÚDO ══════════════════════════════════════
-                 * flex:1 + minHeight:0 → ocupa todo o espaço restante.
-                 * overflow:hidden no md → sem scroll de página.
-                 * overflow:auto  no xs/sm → página pode rolar em mobile.
-                 */}
+                {/* ══ ÁREA DE CONTEÚDO ══════════════════════════════════════ */}
                 <Box sx={{
                     flex: 1,
                     minHeight: 0,
@@ -362,7 +371,6 @@ export default function AgendamentoPage() {
                                 '&:hover': { borderColor: '#C62828', background: '#FFF5F5' },
                             }}
                         >
-                            {/* Label encurtado em mobile */}
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                                 Fechar Expediente e Gerar{' '}
                             </Box>
@@ -370,9 +378,7 @@ export default function AgendamentoPage() {
                         </Button>
                     </Box>
 
-                    {/* ── CARDS DE RESUMO ──
-                     * CSS Grid nativo: 2 colunas em xs/sm, 4 em md+
-                     */}
+                    {/* ── CARDS DE RESUMO ── */}
                     <Box sx={{
                         flexShrink: 0,
                         display: 'grid',
@@ -410,14 +416,7 @@ export default function AgendamentoPage() {
                         ))}
                     </Box>
 
-                    {/* ── KANBAN ────────────────────────────────────────────
-                     * CSS Grid: 1 coluna (xs) → 2 colunas (sm) → 4 colunas (md+)
-                     * flex:1 + minHeight:0 → preenche o restante da tela no desktop.
-                     * overflow:hidden → cada coluna rola internamente, não a página.
-                     *
-                     * Em xs/sm o overflow fica visible e cada Paper tem minHeight
-                     * para que a rolagem ocorra na página (overflow:auto no pai).
-                     */}
+                    {/* ── KANBAN ── */}
                     <Box sx={{
                         flex: 1,
                         minHeight: 0,
@@ -437,9 +436,7 @@ export default function AgendamentoPage() {
                                     border: '1px solid #D6DFF0',
                                     borderRadius: 2,
                                     overflow: 'hidden',
-                                    /* Desktop: preenche altura do grid */
                                     height: { md: '100%' },
-                                    /* Mobile/tablet: altura mínima razoável */
                                     minHeight: { xs: 260, sm: 300, md: 0 },
                                 }}>
 
@@ -476,7 +473,7 @@ export default function AgendamentoPage() {
                                         </Box>
                                     </Box>
 
-                                    {/* Lista de cartões — rola internamente */}
+                                    {/* Lista de cartões — scroll interno */}
                                     <Box sx={{
                                         flex: 1,
                                         minHeight: 0,
@@ -528,6 +525,7 @@ export default function AgendamentoPage() {
                                                         {cfg.label}
                                                     </Box>
 
+                                                    {/* ✅ FIX 5: prioridadeLabel agora é null-safe */}
                                                     {prioridadeLabel(item.prioridade) && (
                                                         <Box sx={{
                                                             background: '#FCE4EC',
@@ -542,17 +540,15 @@ export default function AgendamentoPage() {
                                                     )}
                                                 </Box>
 
-                                                {/* Nome */}
+                                                {/* ✅ FIX 6: fallback para campos que podem vir nulos */}
                                                 <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.3, mb: 0.3 }}>
-                                                    {item.nomeSolicitante}
+                                                    {item.nomeSolicitante ?? '—'}
                                                 </Typography>
 
-                                                {/* Serviço */}
                                                 <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.73rem', mb: 0.5 }}>
-                                                    {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label ?? item.tipoServico}
+                                                    {TIPOS_SERVICO.find(t => t.value === item.tipoServico)?.label ?? item.tipoServico ?? '—'}
                                                 </Typography>
 
-                                                {/* Data/hora */}
                                                 {item.dataHoraChegada && (
                                                     <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem', mb: 0.75 }}>
                                                         <AccessTime sx={{ fontSize: 10, verticalAlign: 'middle', mr: 0.3 }} />
@@ -562,7 +558,6 @@ export default function AgendamentoPage() {
                                                     </Typography>
                                                 )}
 
-                                                {/* Ações */}
                                                 <Box display="flex" gap={0.75}>
                                                     {item.status === 'AGUARDANDO' && (
                                                         <Button
@@ -584,7 +579,9 @@ export default function AgendamentoPage() {
                                                             disabled={updatingId === item.id}
                                                             sx={{ flex: 1, fontSize: '0.7rem', py: 0.4, minWidth: 0 }}
                                                         >
-                                                            Concluir
+                                                            {updatingId === item.id
+                                                                ? <CircularProgress size={12} color="inherit" />
+                                                                : 'Concluir'}
                                                         </Button>
                                                         <Button
                                                             size="small" variant="outlined" color="error"
@@ -603,7 +600,6 @@ export default function AgendamentoPage() {
                             );
                         })}
                     </Box>
-
                 </Box>
 
                 {/* ══ MODAL NOVO AGENDAMENTO ═══════════════════════════════ */}
@@ -621,7 +617,6 @@ export default function AgendamentoPage() {
                         boxShadow: '0 8px 40px rgba(0,0,0,0.2)',
                         overflow: 'hidden',
                     }}>
-                        {/* Header do modal */}
                         <Box sx={{
                             flexShrink: 0,
                             background: '#0D3B7A',
@@ -636,14 +631,13 @@ export default function AgendamentoPage() {
                             </Typography>
                         </Box>
 
-                        {/* Body rolável */}
                         <Box sx={{ flex: 1, overflowY: 'auto', p: { xs: 2, md: 3 } }}>
                             <Box component="form" onSubmit={handleSubmit}>
-
                                 <TextField
                                     label="Nome completo do solicitante"
                                     fullWidth margin="normal" required
-                                    value={formData.nomeSolicitante}
+                                    // ✅ FIX 7: value nunca é undefined nos campos do formulário
+                                    value={formData.nomeSolicitante ?? ''}
                                     onChange={(e) => setFormData({ ...formData, nomeSolicitante: e.target.value })}
                                     InputProps={{ startAdornment: <InputAdornment position="start"><Person fontSize="small" /></InputAdornment> }}
                                 />
@@ -653,7 +647,7 @@ export default function AgendamentoPage() {
                                         <TextField
                                             label="CPF" fullWidth margin="normal" required
                                             placeholder="000.000.000-00"
-                                            value={formData.cpf}
+                                            value={formData.cpf ?? ''}
                                             onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
                                             InputProps={{ startAdornment: <InputAdornment position="start"><Badge fontSize="small" /></InputAdornment> }}
                                         />
@@ -661,7 +655,7 @@ export default function AgendamentoPage() {
                                     <Grid item xs={5}>
                                         <TextField
                                             label="RG" fullWidth margin="normal"
-                                            value={formData.rg}
+                                            value={formData.rg ?? ''}
                                             onChange={(e) => setFormData({ ...formData, rg: e.target.value })}
                                         />
                                     </Grid>
@@ -670,7 +664,7 @@ export default function AgendamentoPage() {
                                 <FormControl fullWidth margin="normal" required>
                                     <InputLabel>Tipo de Serviço</InputLabel>
                                     <Select
-                                        value={formData.tipoServico} label="Tipo de Serviço"
+                                        value={formData.tipoServico ?? ''} label="Tipo de Serviço"
                                         onChange={(e: SelectChangeEvent) => setFormData({ ...formData, tipoServico: e.target.value })}
                                     >
                                         {TIPOS_SERVICO.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
@@ -680,7 +674,7 @@ export default function AgendamentoPage() {
                                 <FormControl fullWidth margin="normal" required>
                                     <InputLabel>Prioridade de Atendimento</InputLabel>
                                     <Select
-                                        value={formData.prioridade} label="Prioridade de Atendimento"
+                                        value={formData.prioridade ?? 'NORMAL'} label="Prioridade de Atendimento"
                                         onChange={(e: SelectChangeEvent) => setFormData({ ...formData, prioridade: e.target.value })}
                                     >
                                         {PRIORIDADES.map(p => <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>)}
@@ -690,7 +684,7 @@ export default function AgendamentoPage() {
                                 <TextField
                                     label="Data e Hora do Agendamento"
                                     type="datetime-local" fullWidth margin="normal" required
-                                    value={formData.dataHoraChegada}
+                                    value={formData.dataHoraChegada ?? ''}
                                     onChange={(e) => setFormData({ ...formData, dataHoraChegada: e.target.value })}
                                     InputLabelProps={{ shrink: true }}
                                     InputProps={{ startAdornment: <InputAdornment position="start"><AccessTime fontSize="small" /></InputAdornment> }}
