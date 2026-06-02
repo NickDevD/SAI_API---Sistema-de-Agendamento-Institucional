@@ -166,8 +166,13 @@ export default function AgendamentoPage() {
 
     // ── Fetch ──
     const fetchAgendamentos = useCallback(async () => {
-        const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
-        setAgendamentos(response.data);
+        try {
+            const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
+            setAgendamentos(response.data);
+        } catch (err) {
+            console.error('Erro ao buscar agendamentos:', err);
+            setToast({ open: true, message: 'Erro ao carregar agendamentos.', severity: 'error' });
+        }
     }, []);
 
     useEffect(() => { fetchAgendamentos(); }, [fetchAgendamentos]);
