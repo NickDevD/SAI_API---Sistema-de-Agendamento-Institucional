@@ -37,9 +37,7 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(authorize -> authorize
                         // Endpoints de Autenticação
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
 
                         // Permitir Pre-flight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
