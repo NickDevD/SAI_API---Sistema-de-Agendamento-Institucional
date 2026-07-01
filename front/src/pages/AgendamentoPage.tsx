@@ -19,6 +19,8 @@ import {
     Modal,
     createTheme,
     ThemeProvider,
+    Tooltip,
+    IconButton,
 } from '@mui/material';
 
 import type { SelectChangeEvent } from '@mui/material/Select';
@@ -35,20 +37,11 @@ import {
     HourglassTop,
     SupportAgent,
     Cancel,
+    Logout,
 } from '@mui/icons-material';
 
-import axios from 'axios';
-
-// ─── API ──────────────────────────────────────────────────────────────────────
-const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
-});
-
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-});
+import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
 
 // ─── MUI THEME ────────────────────────────────────────────────────────────────
 const crasTema = createTheme({
@@ -140,7 +133,6 @@ const COLUNAS = [
     { key: 'CANCELADO'      as const, title: 'Cancelados',     chip: { bg: '#FFEBEE', text: '#B71C1C' } },
 ];
 
-// ✅ FIX 1: prioridadeLabel agora aceita null/undefined sem quebrar
 const prioridadeLabel = (p: string | null | undefined): string | null => {
     if (!p || p === 'NORMAL') return null;
     return p.replace('_', ' ');
@@ -148,6 +140,7 @@ const prioridadeLabel = (p: string | null | undefined): string | null => {
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function AgendamentoPage() {
+    const navigate = useNavigate();
     const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
     const [submitting, setSubmitting]     = useState(false);
     const [updatingId, setUpdatingId]     = useState<string | null>(null);
@@ -168,7 +161,6 @@ export default function AgendamentoPage() {
         severity: 'success' as 'success' | 'error',
     });
 
-    // ✅ FIX 2: fetchAgendamentos normaliza todos os campos que podem vir null/undefined do backend
     const fetchAgendamentos = useCallback(async () => {
         try {
             const response = await api.get<Agendamento[]>('/agendamentos/consultar_agendamentos');
@@ -190,14 +182,17 @@ export default function AgendamentoPage() {
 
     useEffect(() => { fetchAgendamentos(); }, [fetchAgendamentos]);
 
-    // ✅ FIX 3: handleSubmit usa optional chaining no CPF
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         try {
             await api.post('/agendamentos/agendar', {
-                ...formData,
+                nomeSolicitante: formData.nomeSolicitante,
                 cpf: formData.cpf?.replace(/\D/g, '') ?? '',
+                rg: formData.rg,
+                tipoServico: formData.tipoServico,
+                prioridade: formData.prioridade,
+                dataHoraChegada: formData.dataHoraChegada || null,
             });
             setToast({ open: true, message: 'Agendamento criado com sucesso!', severity: 'success' });
             setFormData({ nomeSolicitante: '', cpf: '', rg: '', tipoServico: '', prioridade: 'NORMAL', dataHoraChegada: '' });
@@ -210,7 +205,6 @@ export default function AgendamentoPage() {
         }
     };
 
-    // ✅ FIX 4: atualizarStatus com try/catch completo
     const atualizarStatus = async (id: string, status: Agendamento['status']) => {
         if (status === 'CANCELADO' && !window.confirm('Tem certeza que deseja cancelar este agendamento?')) return;
         setUpdatingId(id);
@@ -239,12 +233,17 @@ export default function AgendamentoPage() {
             link.click();
             link.remove();
             setToast({ open: true, message: 'Relatório gerado com sucesso.', severity: 'success' });
+            fetchAgendamentos();
         } catch {
-            setToast({ open: true, message: 'Erro ao gerar relatório.', severity: 'error' });
+            setToast({ open: true, message: 'Erro ao gerar relatório. Verifique se você tem permissão de ADMIN.', severity: 'error' });
         }
     };
 
-    // ── Filtros ──
+    const handleLogout = () => {
+        localStorage.removeItem('auth_token');
+        navigate('/');
+    };
+
     const filtrados = Object.fromEntries(
         COLUNAS.map(col => [col.key, agendamentos.filter(a => a.status === col.key)])
     );
@@ -307,6 +306,17 @@ export default function AgendamentoPage() {
                                 })}
                             </Typography>
                         </Box>
+
+                        {/* Botão de Logout */}
+                        <Tooltip title="Sair do sistema">
+                            <IconButton
+                                onClick={handleLogout}
+                                size="small"
+                                sx={{ color: 'rgba(255,255,255,0.75)', flexShrink: 0, '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.1)' } }}
+                            >
+                                <Logout fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </Box>
 
                     {/* Sub‑barra de turno */}
@@ -525,7 +535,6 @@ export default function AgendamentoPage() {
                                                         {cfg.label}
                                                     </Box>
 
-                                                    {/* ✅ FIX 5: prioridadeLabel agora é null-safe */}
                                                     {prioridadeLabel(item.prioridade) && (
                                                         <Box sx={{
                                                             background: '#FCE4EC',
@@ -540,7 +549,6 @@ export default function AgendamentoPage() {
                                                     )}
                                                 </Box>
 
-                                                {/* ✅ FIX 6: fallback para campos que podem vir nulos */}
                                                 <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.3, mb: 0.3 }}>
                                                     {item.nomeSolicitante ?? '—'}
                                                 </Typography>
@@ -636,7 +644,6 @@ export default function AgendamentoPage() {
                                 <TextField
                                     label="Nome completo do solicitante"
                                     fullWidth margin="normal" required
-                                    // ✅ FIX 7: value nunca é undefined nos campos do formulário
                                     value={formData.nomeSolicitante ?? ''}
                                     onChange={(e) => setFormData({ ...formData, nomeSolicitante: e.target.value })}
                                     InputProps={{ startAdornment: <InputAdornment position="start"><Person fontSize="small" /></InputAdornment> }}

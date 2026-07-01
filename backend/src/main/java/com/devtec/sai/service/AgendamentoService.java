@@ -7,8 +7,10 @@ import com.devtec.sai.model.StatusAgendamento;
 import com.devtec.sai.repository.AgendamentosRepository;
 import org.springframework.stereotype.Service;
 
-
 import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,63 +31,53 @@ public class AgendamentoService {
         agendamento.setCpf(dados.cpf());
         agendamento.setRg(dados.rg());
         agendamento.setTipoServico(dados.tipoServico());
+        agendamento.setPrioridade(dados.prioridade() != null ? dados.prioridade() : "NORMAL");
+        agendamento.setDataHoraChegada(dados.dataHoraChegada() != null
+                ? dados.dataHoraChegada()
+                : LocalDateTime.now());
         agendamento.setStatus(StatusAgendamento.AGUARDANDO);
 
-        Agendamento agendamentoSalvo = repository.save(agendamento);
-
-        return new AgendamentoResponseDTO(
-                agendamentoSalvo.getId(),
-                agendamentoSalvo.getNomeSolicitante(),
-                agendamentoSalvo.getCpf(),
-                agendamentoSalvo.getTipoServico(),
-                agendamentoSalvo.getDataHoraChegada(),
-                agendamentoSalvo.getStatus()
-        );
+        Agendamento salvo = repository.save(agendamento);
+        return toDTO(salvo);
     }
 
     public List<AgendamentoResponseDTO> consultar() {
-
-        List<Agendamento> agendamentos = repository.findAll();
-
-        return agendamentos.stream()
-                .map(agendamento -> new AgendamentoResponseDTO(
-                        agendamento.getId(),
-                        agendamento.getNomeSolicitante(),
-                        agendamento.getCpf(),
-                        agendamento.getTipoServico(),
-                        agendamento.getDataHoraChegada(),
-                        agendamento.getStatus()
-                ))
+        return repository.findAll().stream()
+                .map(this::toDTO)
                 .toList();
     }
 
     public AgendamentoResponseDTO atualizarStatus(UUID id, StatusAgendamento novoStatus) {
-
         Agendamento agendamento = repository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Agendamento não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
         agendamento.setStatus(novoStatus);
-
-        Agendamento atualizado = repository.save(agendamento);
-
-        return new AgendamentoResponseDTO(
-                atualizado.getId(),
-                atualizado.getNomeSolicitante(),
-                atualizado.getCpf(),
-                atualizado.getTipoServico(),
-                atualizado.getDataHoraChegada(),
-                atualizado.getStatus()
-        );
+        return toDTO(repository.save(agendamento));
     }
 
     public File fecharExpediente() {
+        LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
+        LocalDateTime fimDia = LocalDate.now().atTime(LocalTime.MAX);
 
-        List<Agendamento> hoje = repository.findAll();
+        List<Agendamento> hoje = repository.findByDataHoraChegadaBetween(inicioDia, fimDia);
 
         File file = relatorioService.gerarRelatorio(hoje);
 
-        repository.deleteAll();
+        repository.deleteAll(hoje);
 
         return file;
+    }
+
+    private AgendamentoResponseDTO toDTO(Agendamento a) {
+        return new AgendamentoResponseDTO(
+                a.getId(),
+                a.getNomeSolicitante(),
+                a.getCpf(),
+                a.getRg(),
+                a.getTipoServico(),
+                a.getPrioridade(),
+                a.getDataHoraChegada(),
+                a.getStatus()
+        );
     }
 }

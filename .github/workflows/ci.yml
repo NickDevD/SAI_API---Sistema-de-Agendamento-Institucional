@@ -52,6 +52,9 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres123
           JWT_SECRET: test-secret-key-for-ci-pipeline
+          ADMIN_LOGIN_LINE: admin-ci
+          ADMIN_PASSWORD_LINE: admin-ci-password
+          RELATORIO_PATH: /tmp/relatorios
 
       - name: Upload JAR
         if: success()
@@ -87,6 +90,8 @@ jobs:
       - name: Build
         working-directory: front
         run: npm run build
+        env:
+          VITE_API_URL: http://localhost:8080
 
       - name: Upload build
         if: success()
