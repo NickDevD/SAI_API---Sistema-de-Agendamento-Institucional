@@ -37,7 +37,7 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(authorize -> authorize
                         // Endpoints de Autenticação
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
                         // Permitir Pre-flight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -59,6 +59,8 @@ public class SecurityConfigurations {
         configuration.setAllowedOrigins(Arrays.asList(
                 "https://sai-api-sistema-de-agendamento-inst.vercel.app",
                 "https://backend-api-301612765087.us-central1.run.app",
+                "https://sai-agendamento-institucional.web.app",
+                "https://consulta-cep-api.web.app",
                 "http://localhost:5173",
                 "https://editor.swagger.io"
         ));

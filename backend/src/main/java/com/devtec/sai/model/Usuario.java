@@ -18,7 +18,10 @@ public class Usuario implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "login")
     private String login;
+
+    @Column(name = "senha")
     private String senha;
 
     @Enumerated(EnumType.STRING)

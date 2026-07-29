@@ -1,259 +1,485 @@
-# 💻 SAI - Sistema de Agendamento Institucional
+# SAI — Sistema de Agendamento Institucional
 
-![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=java)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat&logo=spring-boot)
-![React](https://img.shields.io/badge/React-TypeScript-61DAFB?style=flat&logo=react)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791?style=flat&logo=postgresql)
+[![CI](https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional/actions/workflows/ci.yml/badge.svg)](https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional/actions/workflows/ci.yml)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.x-6DB33F?style=flat&logo=spring-boot)
+![React](https://img.shields.io/badge/React-18%20%2B%20TypeScript-61DAFB?style=flat&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql)
 ![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=flat)
 
-**URLs de Deploy:**
->🔗 Backend: https://sai-api-sistema-de-agendamento.onrender.com
-
->🔗 Frontend: https://sai-api-sistema-de-agendamento-inst.vercel.app/
-
-## 📋 Visão Geral do Projeto
-
-O **SAI** (Sistema de Agendamento Institucional) é uma aplicação moderna desenvolvida com uma arquitetura que separa completamente o Frontend e o Backend, permitindo escalabilidade e manutenção independente.
-
-### 🏗️ Arquitetura
-
-- **Backend (API REST)**: Construída com Spring Boot 3.x e Java, responsável pela lógica de negócios, persistência de dados e segurança com autenticação JWT.
-
-- **Frontend (Cliente Web)**: Em desenvolvimento com React e TypeScript, utilizando Material UI para uma interface responsiva e profissional.
-
-- **Banco de Dados**: PostgreSQL com versionamento de schema via Flyway, containerizado com Docker para fácil setup.
-
-## 🛠️ Pré-requisitos de Desenvolvimento
-
-Para rodar este projeto localmente, você precisa ter instalado:
-
-- **Java Development Kit (JDK)** 21 ou superior
-- **Maven** (para gerenciar as dependências do Java)
-- **Node.js** LTS (para o Frontend React)
-- **npm** (instalado junto com o Node.js)
-- **PostgreSQL** (servidor de banco de dados)
-- **Git** (para clonar o repositório)
-- **Docker & Docker Compose** (opcional, para containerização)
-
-## ⚙️ Configuração do Ambiente
-
-O projeto usa Variáveis de Ambiente para gerenciar credenciais (Banco de Dados e Segredos JWT) de forma segura.
-
-### 1. Variáveis de Ambiente (.env)
-
-Na **raiz do repositório** (mesma pasta do `docker-compose.yml`, um nível acima de `backend/`), copie o `.env.example` para `.env` e ajuste os valores:
-
-```bash
-cp .env.example .env
-```
-
-```env
-# PostgreSQL
-POSTGRES_DB_NAME=agendamento_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_PORT=5432
-
-# Usuário admin criado pela migration Flyway V3 (login em texto puro + hash bcrypt da senha)
-DEFAULT_USER_PASSWORD=admin123
-FLYWAY_PLACEHOLDERS_ADMIN_LOGIN=admin
-FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH=hash_bcrypt_da_senha_acima
-
-# Segurança JWT (Token Secreto)
-JWT_SECRET=Insira_Aqui_Uma_Chave_Secreta_Longa_e_Unica_Para_Assinar_Tokens
-```
-
-> Para gerar o hash bcrypt de `FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH`, rode a partir de `backend/`:
-> ```bash
-> mvnw.cmd exec:java -Dexec.mainClass=com.devtec.sai.util.GenerateHash -Dexec.args="sua_senha"
-> ```
-> Sem essas duas variáveis a migration `V3__insert_admin_user.sql` falha e a aplicação não sobe.
->
-> Ao rodar `mvnw spring-boot:run` diretamente (sem Docker), o `.env` da raiz é carregado automaticamente pela aplicação.
-
-### 2. Configuração do Banco de Dados
-
-A aplicação utiliza **Docker Compose** para containerizar o PostgreSQL, facilitando o setup:
-
-1. Certifique-se de que o arquivo `docker-compose.yml` está corretamente configurado com todas as variáveis de ambiente
-2. Execute `docker-compose up -d` para iniciar o PostgreSQL
-3. O **Flyway** gerenciará automaticamente as migrações e criará as tabelas:
-   - `tb_usuarios` - Armazena dados dos usuários (com usuário admin padrão)
-   - `tb_agendamentos` - Armazena os agendamentos registrados
-
-## 🚀 Como Rodar a Aplicação
-
-### 📦 Backend (Spring Boot)
-
-1. **Na raiz do repositório, suba apenas o PostgreSQL com Docker Compose:**
-   ```bash
-   docker-compose up -d postgres-db
-   ```
-
-2. **Navegue até a pasta do backend e execute a aplicação:**
-   ```bash
-   cd backend
-   ./mvnw spring-boot:run
-   ```
-   Ou no Windows:
-   ```bash
-   cd backend
-   mvnw.cmd spring-boot:run
-   ```
-
-4. **Acesse a API:**
-   - Swagger UI: `http://localhost:8080/swagger-ui.html`
-   - Base URL: `http://localhost:8080/api/v1`
-
-### ⚛️ Frontend (React + TypeScript)
-
-1. **Navegue até a pasta do frontend:**
-   ```bash
-   cd front
-   ```
-
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
-
-3. **Inicie o servidor de desenvolvimento:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Acesse no navegador:**
-   ```
-   http://localhost:5173
-   ```
-
-### 🐳 Rodando com Docker (Opcional)
-
-Para rodar a aplicação completa em containers:
-
-```bash
-docker-compose up
-```
-
-## 📚 Endpoints Principais
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/api/v1/auth/login` | Autenticação de usuário |
-| POST | `/api/v1/auth/register` | Cadastro de usuário |
-| POST | `/api/v1/agendamentos/agendar` | Criar novo agendamento |
-| GET | `/api/v1/agendamentos/consultar_agendamentos` | Listar todos os agendamentos |
-| POST | `/api/v1/agendamentos/{id}/status` | Atualizar status de um agendamento |
-| POST | `/api/v1/agendamentos/fechar-expediente` | Gerar relatório PDF do expediente (requer role ADMIN) |
-
-## 🔒 Autenticação
-
-A API utiliza **JWT (JSON Web Tokens)** para segurança:
-
-1. Faça login em `/api/auth/login` com suas credenciais
-2. Copie o token recebido na resposta
-3. No Swagger ou em requisições HTTP, adicione o header:
-   ```
-   Authorization: Bearer seu_token_aqui
-   ```
-
-⚠️ **Nota:** Certifique-se de incluir o prefixo `Bearer ` (com espaço) antes do token.
-
-## 🔄 Pipeline CI/CD e Deploy
-
-Este projeto conta com **automação completa** através de:
-
-### 🚀 Integração Contínua (CI)
-- **GitHub Actions** - Executa testes e validações em cada push
-- Builds automáticos do backend (Maven)
-- Testes unitários automáticos
-- Análise de qualidade do código
-
-### 📡 Deploy Automático (CD)
-- **Render** - Plataforma de deployment em produção
-- Deploy automático a cada merge na branch main
-- Zero downtime deployments
-- Logs centralizados e monitoramento
-
-**URLs de Deploy:**
-- 🔗 Backend: `https://sai-api-sistema-de-agendamento.onrender.com` 
-- 🔗 Frontend: `https://sai-api-sistema-de-agendamento-inst.vercel.app/` 
-
-## 🤝 Colaboração
-
-Este projeto está em desenvolvimento. Contribuições são bem-vindas!
-
-#### 🛠 Solução de Problemas
-
-**Problema:** Erro de conexão com o banco de dados
-- ✅ **Solução:** Verifique se o PostgreSQL está rodando e as credenciais no arquivo `.env` estão corretas
-
-**Problema:** Erro 403/401 (Não autorizado)
-- ✅ **Solução:** Verifique se o token JWT no Swagger está fresco e foi colado com o prefixo `Bearer ` (com espaço antes do token)
-
-**Problema:** Token não é reconhecido pela API
-- ✅ **Solução:** Verifique se a classe `SwaggerConfig.java` está aplicada a toda API para garantir que o token seja reconhecido
-
-**Problema:** Flyway não cria as tabelas
-- ✅ **Solução:** Certifique-se de que o diretório `src/main/resources/db/migration/` contém os arquivos SQL de migração
-
-## 📁 Estrutura do Projeto
-
-```
-SAI_API/
-├── backend/                 # API Spring Boot
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/devtec/sai/
-│   │   │   │       ├── controller/      # Controllers da API
-│   │   │   │       ├── service/         # Lógica de negócios
-│   │   │   │       ├── repository/      # Acesso a dados
-│   │   │   │       ├── model/           # Entidades JPA
-│   │   │   │       ├── dto/             # Data Transfer Objects
-│   │   │   │       ├── config/          # Configurações (Security, Swagger)
-│   │   │   │       ├── exception/       # Exceções customizadas
-│   │   │   │       └── util/            # Utilitários
-│   │   │   └── resources/
-│   │   │       ├── application.properties
-│   │   │       └── db/migration/        # Scripts Flyway
-│   │   └── test/                        # Testes unitários
-│   ├── pom.xml
-│   └── Dockerfile
-│
-├── front/                   # Frontend React + TypeScript
-│   ├── src/
-│   │   ├── pages/           # Páginas da aplicação
-│   │   ├── components/      # Componentes React
-│   │   ├── services/        # Serviços (API calls)
-│   │   ├── theme/           # Temas e estilos
-│   │   └── assets/          # Recursos estáticos
-│   ├── package.json
-│   └── Dockerfile
-│
-├── docker-compose.yml       # Orquestração de containers
-└── README.md               # Este arquivo
-```
-
-## 🧪 Testes
-
-Para rodar os testes do backend:
-
-```bash
-cd backend
-mvnw test
-```
-
-## 📝 Licença
-
-Este projeto está sob a licença [MIT](LICENSE).
-
-## 👤 Autor
-
-**Nicholas** - Desenvolvedor Full Stack
+**URLs de Deploy (GCP):**
+- Backend: https://backend-api-301612765087.us-central1.run.app
+- Frontend: https://sai-agendamento-institucional.web.app
 
 ---
 
-**⭐ Se este projeto foi útil, considere deixar uma estrela! ⭐**
+## Visão Geral
 
+O **SAI** é um sistema de gerenciamento de atendimentos para o CRAS (Centro de Referência de Assistência Social). Permite criar agendamentos, acompanhar o fluxo de atendimento em um kanban visual (Aguardando → Em Atendimento → Concluído/Cancelado) e gerar relatórios em PDF ao fechar o expediente.
 
+### Arquitetura
+
+```
+SAI_API/
+├── backend/          # API REST — Spring Boot 4 + Java 21 + PostgreSQL
+├── front/            # SPA — React 18 + TypeScript + Material UI
+├── relatorios/       # PDFs gerados pelo backend (montado via volume Docker)
+├── docker-compose.yml
+└── .env              # Variáveis de ambiente (não commitado)
+```
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Linguagem backend | Java 21 |
+| Framework backend | Spring Boot 4 |
+| Segurança | Spring Security 7 + JWT (Auth0) |
+| Banco de dados | PostgreSQL 16 |
+| Migrations | Flyway 10 |
+| Geração de PDF | iText 7.2.5 |
+| Frontend | React 18 + TypeScript + Vite 7 |
+| UI | Material UI 5 |
+| HTTP client | Axios |
+| Containers | Docker + Docker Compose |
+| CI/CD | GitHub Actions |
+| Cloud | GCP Cloud Run (backend) + Firebase Hosting (frontend) |
+
+---
+
+## Pré-requisitos
+
+- **Java 21+** e **Maven**
+- **Node.js 20 LTS** e **npm**
+- **Docker e Docker Compose** (recomendado) ou PostgreSQL 16 local
+- **Git**
+
+---
+
+## Setup Local
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional.git
+cd SAI_API---Sistema-de-Agendamento-Institucional
+```
+
+### 2. Configure as variáveis de ambiente
+
+Crie o arquivo `.env` na raiz:
+
+```env
+# Banco de dados PostgreSQL
+POSTGRES_DB_NAME=agendamento_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=sua_senha_aqui
+POSTGRES_PORT=5432
+
+# Segurança JWT (use uma string longa e aleatória)
+JWT_SECRET=sua_chave_jwt_longa_e_aleatoria_aqui
+
+# Usuário admin criado automaticamente no primeiro boot
+ADMIN_LOGIN_LINE=admin
+ADMIN_PASSWORD_LINE=senha_admin_aqui
+
+# URL da API lida pelo NAVEGADOR (não pelo container)
+VITE_API_URL=http://localhost:8080
+```
+
+### 3. Subir com Docker Compose (recomendado)
+
+```bash
+docker-compose up --build -d
+```
+
+Isso inicia PostgreSQL, Backend e Frontend juntos. Acesse:
+- Frontend: http://localhost:5173
+- API: http://localhost:8080
+- Swagger: http://localhost:8080/swagger-ui.html
+
+> **Atenção:** Se precisar recriar o container do frontend após mudar variáveis de ambiente, use
+> `docker-compose up -d --force-recreate frontend-app` (o `restart` simples não aplica novas env vars).
+
+### 4. Rodar separadamente (desenvolvimento)
+
+**Backend:**
+
+```bash
+cd backend
+./mvnw spring-boot:run
+# Windows: mvnw.cmd spring-boot:run
+```
+
+**Frontend:**
+
+```bash
+cd front
+npm install
+npm run dev
+```
+
+Crie `front/.env` com:
+```
+VITE_API_URL=http://localhost:8080
+```
+
+---
+
+## Variáveis de Ambiente
+
+### Backend
+
+| Variável | Obrigatória | Padrão | Descrição |
+|----------|-------------|--------|-----------|
+| `SPRING_DATASOURCE_URL` | Sim | `jdbc:postgresql://localhost:5432/agendamento_db` | URL JDBC do banco |
+| `SPRING_DATASOURCE_USERNAME` | Sim | — | Usuário do PostgreSQL |
+| `SPRING_DATASOURCE_PASSWORD` | Sim | — | Senha do PostgreSQL |
+| `JWT_SECRET` | Sim | `JWT_SECRET` (inseguro) | Chave para assinar tokens JWT |
+| `ADMIN_LOGIN_LINE` | Não | *(vazio)* | Login do admin criado no boot |
+| `ADMIN_PASSWORD_LINE` | Não | *(vazio)* | Senha do admin criado no boot |
+| `RELATORIO_PATH` | Não | `/app/relatorios` | Diretório para salvar PDFs |
+| `PORT` | Não | `8080` | Porta do servidor |
+
+### Frontend
+
+| Variável | Descrição |
+|----------|-----------|
+| `VITE_API_URL` | URL base da API acessível pelo navegador (ex: `http://localhost:8080`) |
+
+> **Importante:** `VITE_API_URL` é lida pelo **navegador**, não pelo servidor. Em produção, deve ser a URL pública do backend (ex: `https://backend-api-xxx.run.app`), não um endereço interno Docker.
+
+---
+
+## Rotas da API
+
+### Autenticação (`/auth`)
+
+| Método | Rota | Descrição | Auth |
+|--------|------|-----------|------|
+| `POST` | `/auth/login` | Login — retorna token JWT | Pública |
+| `POST` | `/auth/register` | Cadastrar usuário | **ADMIN** |
+
+**Payload login:**
+```json
+{ "login": "admin", "senha": "senha123" }
+```
+
+**Resposta:**
+```json
+{ "token": "eyJ..." }
+```
+
+### Agendamentos (`/agendamentos`)
+
+| Método | Rota | Descrição | Auth |
+|--------|------|-----------|------|
+| `POST` | `/agendamentos/agendar` | Criar agendamento | JWT |
+| `GET` | `/agendamentos/consultar_agendamentos` | Listar todos | JWT |
+| `POST` | `/agendamentos/{id}/status` | Atualizar status | JWT |
+| `POST` | `/agendamentos/fechar-expediente` | Gerar PDF e limpar registros do dia | **ADMIN** |
+
+**Payload criar agendamento:**
+```json
+{
+  "nomeSolicitante": "João da Silva",
+  "cpf": "12345678901",
+  "rg": "1234567",
+  "tipoServico": "BENEFICIO_PREVIDENCIARIO",
+  "prioridade": "IDOSO",
+  "dataHoraChegada": "2025-07-01T09:30"
+}
+```
+
+**Valores válidos — `tipoServico`:** `EMISSAO_DOCUMENTOS`, `BENEFICIO_PREVIDENCIARIO`, `CONSULTORIA_FINANCEIRA`, `SUPORTE_TECNICO`, `OUTROS`
+
+**Valores válidos — `prioridade`:** `NORMAL`, `IDOSO`, `PREFERENCIAL`, `PCD`
+
+**Valores válidos — `status`:** `AGUARDANDO`, `EM_ATENDIMENTO`, `CONCLUIDO`, `CANCELADO`
+
+---
+
+## Autenticação
+
+Todas as rotas (exceto `/auth/login`) exigem token JWT no header:
+
+```
+Authorization: Bearer <token>
+```
+
+O token é obtido via `POST /auth/login` e expira em **2 horas**. O frontend armazena o token em `localStorage` e o interceptor do Axios o inclui automaticamente. Ao expirar (resposta 401), o usuário é redirecionado para o login.
+
+---
+
+## Banco de Dados — Migrations Flyway
+
+| Versão | Arquivo | Descrição |
+|--------|---------|-----------|
+| V1 | `V1__criar_tabela_agendamentos.sql` | Tabela `tb_agendamentos` |
+| V2 | `V2__criar_tabela_usuarios.sql` | Tabela `tb_usuarios` |
+| V3 | `V3__adicionar_prioridade_agendamentos.sql` | Coluna `prioridade` em `tb_agendamentos` |
+
+> O Flyway é configurado manualmente via `FlywayConfig.java` (necessário no Spring Boot 4 para garantir que as migrations rodem antes da validação do Hibernate).
+
+---
+
+## Deploy — GCP Cloud Run + Firebase Hosting
+
+### Visão geral
+
+| Componente | Serviço GCP | URL |
+|------------|-------------|-----|
+| Backend (API) | Cloud Run | `https://backend-api-xxx.us-central1.run.app` |
+| Frontend (SPA) | Firebase Hosting | `https://seu-projeto.web.app` |
+| Banco de dados | Cloud SQL (PostgreSQL 16) | Conexão via socket Unix ou URL JDBC |
+
+---
+
+### Backend — GCP Cloud Run
+
+O backend é empacotado como imagem Docker e publicado no Cloud Run.
+
+**1. Build e push da imagem para o Artifact Registry:**
+
+```bash
+# Substitua PROJECT_ID pelo ID do seu projeto GCP
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+docker build -t us-central1-docker.pkg.dev/PROJECT_ID/sai/backend:latest ./backend
+docker push us-central1-docker.pkg.dev/PROJECT_ID/sai/backend:latest
+```
+
+**2. Deploy no Cloud Run:**
+
+```bash
+gcloud run deploy backend-api \
+  --image us-central1-docker.pkg.dev/PROJECT_ID/sai/backend:latest \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --port 8080 \
+  --set-env-vars "SPRING_DATASOURCE_URL=jdbc:postgresql://HOST:5432/agendamento_db" \
+  --set-env-vars "SPRING_DATASOURCE_USERNAME=postgres" \
+  --set-env-vars "SPRING_DATASOURCE_PASSWORD=SENHA" \
+  --set-env-vars "JWT_SECRET=SUA_CHAVE_SECRETA" \
+  --set-env-vars "ADMIN_LOGIN_LINE=admin" \
+  --set-env-vars "ADMIN_PASSWORD_LINE=SENHA_ADMIN" \
+  --set-env-vars "RELATORIO_PATH=/app/relatorios"
+```
+
+> O Flyway roda automaticamente ao iniciar o container e aplica as migrations pendentes.
+
+**Variáveis de ambiente obrigatórias no Cloud Run:**
+
+| Variável | Valor em produção |
+|----------|-------------------|
+| `SPRING_DATASOURCE_URL` | URL do Cloud SQL ou banco externo |
+| `SPRING_DATASOURCE_USERNAME` | Usuário do banco |
+| `SPRING_DATASOURCE_PASSWORD` | Senha do banco |
+| `JWT_SECRET` | Chave longa e aleatória (mínimo 32 chars) |
+| `ADMIN_LOGIN_LINE` | Login do admin inicial |
+| `ADMIN_PASSWORD_LINE` | Senha do admin inicial |
+
+---
+
+### Frontend — Firebase Hosting
+
+O frontend é um build estático servido pelo Firebase Hosting. A `VITE_API_URL` é injetada em **tempo de build** e deve apontar para a URL pública do Cloud Run.
+
+**1. Instale o Firebase CLI e faça login:**
+
+```bash
+npm install -g firebase-tools
+firebase login
+```
+
+**2. Inicialize o projeto (só na primeira vez):**
+
+```bash
+cd front
+firebase init hosting
+# Escolha: existing project → seu projeto GCP
+# Public directory: dist
+# Single-page app: yes
+# Overwrite index.html: no
+```
+
+**3. Build com a URL de produção e deploy:**
+
+```bash
+cd front
+VITE_API_URL=https://backend-api-xxx.us-central1.run.app npm run build
+firebase deploy --only hosting
+```
+
+> A `VITE_API_URL` **deve ser definida antes do build** para que o Vite a incorpore no bundle estático. Ela não pode ser alterada depois sem um novo build.
+
+---
+
+### Banco de dados em produção
+
+**Opção A — Cloud SQL (recomendado para produção):**
+1. Crie uma instância PostgreSQL 16 no Cloud SQL
+2. Crie o banco `agendamento_db`
+3. Configure o Cloud Run para se conectar via Cloud SQL Auth Proxy ou IP público
+4. Use a variável `SPRING_DATASOURCE_URL` com a URL de conexão
+
+**Opção B — Supabase / Neon (mais simples para protótipos):**
+- Crie um banco gratuito no [supabase.com](https://supabase.com) ou [neon.tech](https://neon.tech)
+- Copie a connection string PostgreSQL e use em `SPRING_DATASOURCE_URL`
+
+---
+
+### O processo mudou do deploy anterior?
+
+**Não.** O fluxo é idêntico ao da versão anterior. As únicas diferenças a considerar:
+
+1. **Flyway**: agora usa `FlywayConfig.java` em vez da auto-configuração do Spring Boot. Isso é transparente — o Flyway ainda roda na inicialização e aplica as migrations automaticamente.
+2. **Sem `/api/v1`**: os endpoints não têm prefixo. Certifique-se de que `VITE_API_URL` aponta para a raiz (ex: `https://backend-api-xxx.run.app`), sem `/api/v1` no final.
+3. **Jackson 3**: `LocalDateTime` agora é serializado com `@JsonFormat` no DTO, sem configuração global. Nenhuma ação necessária no deploy.
+
+---
+
+## CI/CD — GitHub Actions
+
+O arquivo `.github/workflows/ci.yml` executa em todo push para `main` e `develop`:
+
+1. **Backend job**: sobe PostgreSQL como service, compila com Maven, roda testes.
+2. **Frontend job**: instala dependências npm, roda linter, executa build Vite.
+3. Artefatos (JAR e `dist/`) são salvos por 5 dias.
+
+Para adicionar deploy automático ao GCP, configure os secrets no repositório GitHub:
+- `GCP_PROJECT_ID`
+- `GCP_SA_KEY` (chave JSON da Service Account com permissão Cloud Run Admin + Storage Admin)
+- `FIREBASE_SERVICE_ACCOUNT` (para deploy do frontend)
+
+---
+
+## Estrutura do Projeto
+
+```
+backend/src/main/java/com/devtec/sai/
+├── config/
+│   ├── AdminSetup.java              # Cria usuário admin no boot se configurado
+│   ├── FlywayConfig.java            # Configuração manual do Flyway (Spring Boot 4)
+│   ├── SecurityConfigurations.java  # Spring Security + CORS
+│   ├── SecurityFilter.java          # Filtro JWT por requisição
+│   └── SwaggerConfig.java
+├── controller/
+│   ├── AgendamentoController.java
+│   └── AuthenticationController.java
+├── dto/
+│   ├── AgendamentosRequestDTO.java
+│   ├── AgendamentoResponseDTO.java
+│   ├── AtualizarStatusDTO.java
+│   ├── AuthenticationDTO.java
+│   ├── LoginResponseDTO.java
+│   ├── RegisterDTO.java
+│   ├── ErrorResponseDTO.java
+│   └── FieldErrorDTO.java
+├── model/
+│   ├── Agendamento.java
+│   ├── StatusAgendamento.java
+│   ├── UserRole.java
+│   └── Usuario.java
+├── repository/
+│   ├── AgendamentosRepository.java
+│   └── UsuarioRepository.java
+└── service/
+    ├── AgendamentoService.java
+    ├── AuthorizationService.java
+    ├── RelatorioService.java
+    └── TokenService.java
+
+front/src/
+├── components/
+│   └── ProtectedRoute.tsx       # Redireciona para login se não autenticado
+├── pages/
+│   ├── LoginPage.tsx
+│   └── AgendamentoPage.tsx
+├── services/
+│   └── api.ts                   # Instância Axios com interceptors JWT e 401
+└── App.tsx
+```
+
+---
+
+## Solução de Problemas
+
+**Login retorna 500 em vez de 401**
+→ Versões antigas do controller não capturavam `BadCredentialsException`. Atualize para a versão atual que retorna 401 explicitamente.
+
+**Frontend continua chamando `/api/v1/...` depois de mudar a env var**
+→ `docker-compose restart` não aplica novas variáveis de ambiente. Use `docker-compose up -d --force-recreate frontend-app`.
+
+**Erro de schema na inicialização (`missing table/column`)**
+→ O Flyway não rodou antes do Hibernate. Confirme que `FlywayConfig.java` existe no projeto e que `spring.flyway.enabled=false` está no `application.properties`.
+
+**Erro ao conectar no banco de dados**
+→ Verifique se o PostgreSQL está rodando e as variáveis em `.env` estão corretas.
+
+**Erro 401 (Não autorizado)**
+→ Token JWT expirou (2h) — faça login novamente.
+
+**Erro 403 (Proibido) ao tentar gerar relatório**
+→ O endpoint `fechar-expediente` exige role `ADMIN`.
+
+**Relatório PDF não é gerado**
+→ Defina `RELATORIO_PATH` para um diretório com permissão de escrita.
+
+**CORS bloqueando o frontend**
+→ A URL do frontend deve estar em `allowedOrigins` no `SecurityConfigurations.java`. Adicione a URL de produção se necessário.
+
+---
+
+## Changelog
+
+### v1.2.0 (2026-06-30)
+
+#### Backend
+- **[FIX]** Spring Boot 4: criado `FlywayConfig.java` com `BeanFactoryPostProcessor` para garantir que o Flyway roda antes da validação do Hibernate — resolve `missing table/column` na inicialização
+- **[FIX]** Spring Boot 4 / Jackson 3: removida property `spring.jackson.serialization.write-dates-as-timestamps` (enum removido no Jackson 3) — substituída por `@JsonFormat` em `AgendamentoResponseDTO`
+- **[FIX]** `AuthenticationController.login()` agora captura `AuthenticationException` e retorna 401 — antes propagava como 500
+
+#### Frontend
+- **[FIX]** `VITE_API_URL` corrigida para `http://localhost:8080` (sem `/api/v1` que não existe no backend)
+- **[FIX]** Interceptor 401 agora ignora o endpoint `/auth/login` — evita redirect em loop ao errar a senha
+
+#### Docker
+- **[FIX]** `docker-compose.yml`: `VITE_API_URL` corrigida para `http://localhost:8080`
+
+---
+
+### v1.1.0 (2025-06-30)
+
+#### Backend
+- **[FIX]** Alinhada versão do módulo `io` do iText de `8.0.2` para `7.2.5`
+- **[FIX]** Defaults adicionados para `ADMIN_LOGIN_LINE` e `ADMIN_PASSWORD_LINE`
+- **[FEAT]** Campo `prioridade` adicionado ao modelo, DTOs e migration V3
+- **[FIX]** `AgendamentoResponseDTO` corrigido com campos `rg` e `prioridade`
+- **[FIX]** `fecharExpediente` agora filtra apenas agendamentos do dia atual
+- **[FIX]** Tabela PDF corrigida (6 colunas declaradas, 6 preenchidas)
+- **[FEAT]** `RELATORIO_PATH` configurável via variável de ambiente
+- **[SECURITY]** `POST /auth/register` protegido — exige role ADMIN
+- **[FIX]** `@CrossOrigin` duplicado removido do `AuthenticationController`
+
+#### Frontend
+- **[FEAT]** `ProtectedRoute` criado
+- **[FEAT]** Interceptor 401 e logout automático
+- **[FIX]** `AgendamentoPage` unificada com instância central do Axios
+- **[FIX]** Interface `Agendamento` sincronizada com o backend
+
+#### CI/CD
+- **[FIX]** Variáveis `ADMIN_LOGIN_LINE`, `ADMIN_PASSWORD_LINE` e `RELATORIO_PATH` adicionadas ao CI
+
+---
+
+## Licença
+
+[MIT](LICENSE)
+
+## Autor
+
+**Nicholas** — Desenvolvedor Full Stack
