@@ -41,19 +41,35 @@ O projeto usa Variáveis de Ambiente para gerenciar credenciais (Banco de Dados 
 
 ### 1. Variáveis de Ambiente (.env)
 
-Na raiz da pasta do Backend (onde está o `pom.xml` e o `docker-compose.yml`), crie um arquivo chamado `.env` com as seguintes variáveis:
+Na **raiz do repositório** (mesma pasta do `docker-compose.yml`, um nível acima de `backend/`), copie o `.env.example` para `.env` e ajuste os valores:
+
+```bash
+cp .env.example .env
+```
 
 ```env
-# Configuração de Segurança JWT (Token Secreto)
-JWT_SECRET=Insira_Aqui_Uma_Chave_Secreta_Longa_e_Unica_Para_Assinar_Tokens
-
-# Configuração do PostgreSQL
-POSTGRES_HOST=localhost
+# PostgreSQL
+POSTGRES_DB_NAME=agendamento_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
 POSTGRES_PORT=5432
-POSTGRES_USER=seu_usuario_postgres
-POSTGRES_PASSWORD=sua_senha_postgres
-POSTGRES_DB_NAME=sai_agendamento
+
+# Usuário admin criado pela migration Flyway V3 (login em texto puro + hash bcrypt da senha)
+DEFAULT_USER_PASSWORD=admin123
+FLYWAY_PLACEHOLDERS_ADMIN_LOGIN=admin
+FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH=hash_bcrypt_da_senha_acima
+
+# Segurança JWT (Token Secreto)
+JWT_SECRET=Insira_Aqui_Uma_Chave_Secreta_Longa_e_Unica_Para_Assinar_Tokens
 ```
+
+> Para gerar o hash bcrypt de `FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH`, rode a partir de `backend/`:
+> ```bash
+> mvnw.cmd exec:java -Dexec.mainClass=com.devtec.sai.util.GenerateHash -Dexec.args="sua_senha"
+> ```
+> Sem essas duas variáveis a migration `V3__insert_admin_user.sql` falha e a aplicação não sobe.
+>
+> Ao rodar `mvnw spring-boot:run` diretamente (sem Docker), o `.env` da raiz é carregado automaticamente pela aplicação.
 
 ### 2. Configuração do Banco de Dados
 
@@ -69,28 +85,25 @@ A aplicação utiliza **Docker Compose** para containerizar o PostgreSQL, facili
 
 ### 📦 Backend (Spring Boot)
 
-1. **Navegue até a pasta do backend:**
+1. **Na raiz do repositório, suba apenas o PostgreSQL com Docker Compose:**
+   ```bash
+   docker-compose up -d postgres-db
+   ```
+
+2. **Navegue até a pasta do backend e execute a aplicação:**
    ```bash
    cd backend
-   ```
-
-2. **Inicie o PostgreSQL com Docker Compose:**
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **Execute a aplicação:**
-   ```bash
    ./mvnw spring-boot:run
    ```
    Ou no Windows:
    ```bash
+   cd backend
    mvnw.cmd spring-boot:run
    ```
 
 4. **Acesse a API:**
    - Swagger UI: `http://localhost:8080/swagger-ui.html`
-   - Base URL: `http://localhost:8080/api`
+   - Base URL: `http://localhost:8080/api/v1`
 
 ### ⚛️ Frontend (React + TypeScript)
 
@@ -126,12 +139,12 @@ docker-compose up
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| POST | `/api/auth/login` | Autenticação de usuário |
-| POST | `/api/agendamentos` | Criar novo agendamento |
-| GET | `/api/agendamentos` | Listar todos os agendamentos |
-| GET | `/api/agendamentos/{id}` | Buscar agendamento por ID |
-| PUT | `/api/agendamentos/{id}` | Atualizar agendamento |
-| DELETE | `/api/agendamentos/{id}` | Deletar agendamento |
+| POST | `/api/v1/auth/login` | Autenticação de usuário |
+| POST | `/api/v1/auth/register` | Cadastro de usuário |
+| POST | `/api/v1/agendamentos/agendar` | Criar novo agendamento |
+| GET | `/api/v1/agendamentos/consultar_agendamentos` | Listar todos os agendamentos |
+| POST | `/api/v1/agendamentos/{id}/status` | Atualizar status de um agendamento |
+| POST | `/api/v1/agendamentos/fechar-expediente` | Gerar relatório PDF do expediente (requer role ADMIN) |
 
 ## 🔒 Autenticação
 
