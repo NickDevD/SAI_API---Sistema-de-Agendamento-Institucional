@@ -1,15 +1,26 @@
 import { createTheme } from "@mui/material/styles";
 
+// Paleta institucional do CRAS/SUAS — mesmas cores usadas no dashboard
+// (AgendamentoPage.tsx), para que login e dashboard se comuniquem visualmente.
 const theme = createTheme({
     palette: {
         primary: {
-            main: "#5A4BFF",
+            main: "#1565C0",
+            light: "#1976D2",
+            dark: "#0D3B7A",
+            contrastText: "#fff",
         },
         secondary: {
-            main: "#6C63FF",
+            main: "#2E7D32",
+            light: "#388E3C",
+            dark: "#1B5E20",
+            contrastText: "#fff",
+        },
+        warning: {
+            main: "#F9A825",
         },
         background: {
-            default: "#F6F7FB",
+            default: "#EDF1F8",
         },
     },
     shape: {
