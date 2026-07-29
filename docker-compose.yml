@@ -33,6 +33,10 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      FLYWAY_PLACEHOLDERS_ADMIN_LOGIN: ${FLYWAY_PLACEHOLDERS_ADMIN_LOGIN}
+      # o hash bcrypt tem "$" no valor - no .env ele precisa estar escapado como "$$"
+      # para o Compose nao tentar interpolar pedacos dele como variavel (ver .env.example)
+      FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH: ${FLYWAY_PLACEHOLDERS_ADMIN_PASSWORD_HASH}
       PORT: 8080
     depends_on:
       postgres-db:

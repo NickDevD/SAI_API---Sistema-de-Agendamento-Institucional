@@ -1,11 +1,15 @@
 ### IntelliJ IDEA ###
 .idea
+*.iml
+
+### Env ###
 .env
-.node_modules
-.CI-CD-PIPELINE
+
+### Node ###
+node_modules
+
+### Maven / Java build output ###
+target/
+
+### Misc ###
 .DS_Store
-.CORS-CONFIGURATION.md
-.DEPLOY-AWS.md
-.DEPLOY-RENDER.md
-.QUICK-START-CICD.md
-.SETUP-CICD-STEP-BY-STEP.md
