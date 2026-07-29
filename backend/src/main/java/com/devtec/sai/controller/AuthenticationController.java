@@ -7,16 +7,17 @@ import com.devtec.sai.model.Usuario;
 import com.devtec.sai.repository.UsuarioRepository;
 import com.devtec.sai.service.TokenService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "https://sai-api-sistema-de-agendamento-inst.vercel.app")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
@@ -31,12 +32,15 @@ public class AuthenticationController {
 
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.senha());
-        var auth = authenticationManager.authenticate(usernamePassword);
-        var token = tokenService.gerarToken((Usuario) auth.getPrincipal());
-
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+    public ResponseEntity<?> login(@RequestBody @Valid AuthenticationDTO data) {
+        try {
+            var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.senha());
+            var auth = authenticationManager.authenticate(usernamePassword);
+            var token = tokenService.gerarToken((Usuario) auth.getPrincipal());
+            return ResponseEntity.ok(new LoginResponseDTO(token));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
     @PostMapping("/register")

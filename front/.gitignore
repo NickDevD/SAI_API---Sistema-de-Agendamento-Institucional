@@ -8,9 +8,13 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
-dist-ssr
 *.local
+
+# Build output
+dist
+
+# Firebase
+.firebase
 
 # Editor directories and files
 .vscode/*
