@@ -1,6 +1,7 @@
 package com.devtec.sai.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -53,19 +54,29 @@ public class SecurityConfigurations {
                 .build();
     }
 
+    /**
+     * Origens liberadas no CORS, separadas por virgula.
+     *
+     * <p>Fica em variavel de ambiente porque a URL do frontend muda a cada ambiente
+     * (e a cada projeto GCP). Antes esta lista era fixa no codigo, entao publicar em
+     * outro dominio exigia recompilar a imagem — e o sintoma de esquecer era confuso:
+     * a pagina carrega, o login nao faz nada, e o erro so aparece no console.
+     *
+     * <p>O padrao cobre o desenvolvimento local e o Firebase Hosting atual.
+     */
+    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://sai-agendamento-institucional.web.app}")
+    private String allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        //⚠️ IMPORTANTE: Permita o Swagger e o seu futuro front
-        configuration.setAllowedOrigins(Arrays.asList(
-                "https://sai-api-sistema-de-agendamento-inst.vercel.app",
-                "https://backend-api-301612765087.us-central1.run.app",
-                "https://sai-agendamento-institucional.web.app",
-                "https://consulta-cep-api.web.app",
-                "http://localhost:5173",
-                "https://editor.swagger.io"
-        ));
+        configuration.setAllowedOrigins(
+                Arrays.stream(allowedOrigins.split(","))
+                        .map(String::trim)
+                        .filter(origem -> !origem.isEmpty())
+                        .toList()
+        );
 
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
