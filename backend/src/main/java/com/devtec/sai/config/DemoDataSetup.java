@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -30,8 +32,13 @@ import java.util.List;
  *
  * <p>Os horários são calculados a partir de {@link LocalDate#now()} para que a fila
  * apareça sempre como "hoje" — o kanban e o fechamento de expediente filtram pelo dia atual.
+ *
+ * <p>Além do boot, um agendamento periódico repõe os dados quando a base fica vazia. Sem
+ * isso a demonstração morre no primeiro "Fechar Expediente" — a operação apaga os registros
+ * do dia e os dados só voltariam num restart do container.
  */
 @Component
+@EnableScheduling
 public class DemoDataSetup implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DemoDataSetup.class);
@@ -67,6 +74,24 @@ public class DemoDataSetup implements CommandLineRunner {
         popularAgendamentos();
     }
 
+    /**
+     * Repõe os dados de demonstração quando a base fica vazia.
+     *
+     * <p>O gatilho mais comum é o "Fechar Expediente", que apaga os agendamentos do dia.
+     * Como só age com a tabela vazia, não interfere em quem estiver testando: enquanto
+     * houver qualquer registro, este método não faz nada.
+     */
+    @Scheduled(
+            initialDelayString = "${DEMO_RESEED_INTERVAL_MS:120000}",
+            fixedDelayString = "${DEMO_RESEED_INTERVAL_MS:120000}"
+    )
+    public void reporDadosSeVazio() {
+        if (!demoSeedEnabled) {
+            return;
+        }
+        popularAgendamentos();
+    }
+
     private void criarUsuarioDemo() {
         if (!StringUtils.hasText(demoPassword)) {
             logger.warn("DEMO_SEED_ENABLED=true mas DEMO_PASSWORD nao foi definida - usuario demo nao sera criado");
@@ -84,7 +109,7 @@ public class DemoDataSetup implements CommandLineRunner {
 
     private void popularAgendamentos() {
         if (agendamentosRepository.count() > 0) {
-            logger.info("Base ja contem agendamentos - seed de demonstracao ignorado");
+            logger.debug("Base ja contem agendamentos - seed de demonstracao ignorado");
             return;
         }
 
