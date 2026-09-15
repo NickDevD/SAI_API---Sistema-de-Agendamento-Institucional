@@ -6,7 +6,6 @@ export const api = axios.create({
     baseURL: BASE_URL,
 });
 
-// Adiciona o token JWT no header de cada requisição
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('auth_token');
@@ -18,7 +17,7 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Redireciona para login quando o token expirar (401), exceto na própria chamada de login
+// Ignora o 401 do próprio login, senão errar a senha viraria um redirect em loop
 api.interceptors.response.use(
     (response) => response,
     (error) => {

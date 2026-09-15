@@ -21,21 +21,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Popula o ambiente de demonstração com dados fictícios e cria o usuário "demo".
+ * Popula a demonstração com dados fictícios e cria o usuário "demo". Só roda com
+ * {@code DEMO_SEED_ENABLED=true}; mantenha desligado em instalação real.
  *
- * <p>Só roda quando {@code DEMO_SEED_ENABLED=true}. Mantenha desligado em qualquer
- * instalação real — o ambiente de produção do CRAS não deve receber dados sintéticos.
+ * <p>O demo é {@link UserRole#USER} de propósito: fechar expediente exige ADMIN e apaga
+ * os registros do dia, então um visitante não consegue esvaziar a demonstração.
  *
- * <p>O usuário demo é criado com role {@link UserRole#USER} de propósito: o endpoint
- * {@code /agendamentos/fechar-expediente} exige ADMIN e apaga os registros do dia, então
- * um visitante não consegue esvaziar a demonstração.
- *
- * <p>Os horários são calculados a partir de {@link LocalDate#now()} para que a fila
- * apareça sempre como "hoje" — o kanban e o fechamento de expediente filtram pelo dia atual.
- *
- * <p>Além do boot, um agendamento periódico repõe os dados quando a base fica vazia. Sem
- * isso a demonstração morre no primeiro "Fechar Expediente" — a operação apaga os registros
- * do dia e os dados só voltariam num restart do container.
+ * <p>Os horários saem de {@link LocalDate#now()} porque o kanban filtra pelo dia atual.
  */
 @Component
 @EnableScheduling
@@ -74,13 +66,8 @@ public class DemoDataSetup implements CommandLineRunner {
         popularAgendamentos();
     }
 
-    /**
-     * Repõe os dados de demonstração quando a base fica vazia.
-     *
-     * <p>O gatilho mais comum é o "Fechar Expediente", que apaga os agendamentos do dia.
-     * Como só age com a tabela vazia, não interfere em quem estiver testando: enquanto
-     * houver qualquer registro, este método não faz nada.
-     */
+    /** Repõe os dados quando a base fica vazia — normalmente após um "Fechar
+     *  Expediente". Só age com a tabela vazia, então não atrapalha quem está testando. */
     @Scheduled(
             initialDelayString = "${DEMO_RESEED_INTERVAL_MS:120000}",
             fixedDelayString = "${DEMO_RESEED_INTERVAL_MS:120000}"
@@ -115,9 +102,8 @@ public class DemoDataSetup implements CommandLineRunner {
 
         LocalDate hoje = LocalDate.now();
 
-        // CPFs de exemplo amplamente publicados em documentacao de validacao brasileira.
-        // Sao apenas numeros com digito verificador valido, exigidos pela anotacao @CPF —
-        // nao identificam ninguem, e o frontend exibe o valor mascarado.
+        // CPFs de exemplo de documentação: dígito verificador válido apenas porque a
+        // anotação @CPF exige. Não identificam ninguém e a API os devolve mascarados.
         List<Agendamento> demo = List.of(
                 novo("Maria Aparecida de Souza", "52998224725", "1234567", "BENEFICIO_PREVIDENCIARIO",
                         "IDOSO", hora(hoje, 8, 10), StatusAgendamento.AGUARDANDO),

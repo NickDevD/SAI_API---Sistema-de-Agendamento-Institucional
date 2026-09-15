@@ -13,7 +13,6 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        // 1. Define o nome do esquema de segurança
         final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()

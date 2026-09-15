@@ -15,11 +15,9 @@ import java.util.List;
 @Configuration
 public class FlywayConfig {
 
-    /**
-     * Forces entityManagerFactory to wait for Flyway migrations before Hibernate validates the schema.
-     * In Spring Boot 4 the Flyway auto-configuration no longer enforces this ordering automatically.
-     * Must be a static @Bean so Spring processes it as a BeanFactoryPostProcessor early enough.
-     */
+    /** Faz o entityManagerFactory esperar as migrations antes do Hibernate validar o
+     *  schema. No Spring Boot 4 a auto-configuração do Flyway deixou de garantir essa
+     *  ordem. Precisa ser @Bean estático para o Spring processá-lo cedo o bastante. */
     @Bean
     public static BeanFactoryPostProcessor flywayDependsOnPostProcessor() {
         return (ConfigurableListableBeanFactory bf) -> {
