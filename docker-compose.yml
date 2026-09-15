@@ -40,6 +40,7 @@ services:
       DEMO_LOGIN: ${DEMO_LOGIN:-demo}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
       DEMO_RESEED_INTERVAL_MS: ${DEMO_RESEED_INTERVAL_MS:-120000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
     restart: on-failure:5
     depends_on:
       postgres-db:
