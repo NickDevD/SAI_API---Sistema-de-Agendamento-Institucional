@@ -193,31 +193,36 @@ O Flyway é orquestrado por `FlywayConfig.java` em vez da auto-configuração. N
 
 ## Deploy
 
-A aplicação roda em três serviços independentes: **Cloud Run** (API), **Firebase Hosting** (frontend) e **Supabase** (banco). A imagem do backend é construída pelo Cloud Build e publicada no Artifact Registry; senhas ficam no Secret Manager.
+A aplicação roda em três serviços independentes: **Cloud Run** (API), **Firebase Hosting** (frontend) e **Supabase** (banco). O estado vive inteiramente fora do container, que pode ser descartado e recriado a qualquer momento.
 
-O passo a passo completo, do projeto vazio até o sistema no ar, está em [`docs/`](docs/).
+**Backend.** A imagem é construída pelo Cloud Build e publicada no Artifact Registry; as senhas ficam no Secret Manager.
 
 ```bash
+gcloud builds submit --tag us-central1-docker.pkg.dev/$PROJETO/sai-repo/sai-backend .
+
 gcloud run deploy backend-api \
   --image us-central1-docker.pkg.dev/$PROJETO/sai-repo/sai-backend \
   --region us-central1 \
   --allow-unauthenticated \
   --memory 1Gi \
-  --set-env-vars "CORS_ALLOWED_ORIGINS=https://seu-site.web.app" \
-  --set-secrets "JWT_SECRET=sai-jwt-secret:latest"
+  --set-env-vars "SPRING_DATASOURCE_URL=jdbc:postgresql://$DB_HOST:5432/postgres?sslmode=require" \
+  --set-env-vars "SPRING_DATASOURCE_USERNAME=$DB_USER,CORS_ALLOWED_ORIGINS=https://seu-site.web.app" \
+  --set-secrets "SPRING_DATASOURCE_PASSWORD=sai-db-password:latest,JWT_SECRET=sai-jwt-secret:latest"
 ```
+
+**Frontend.** A URL da API é incorporada ao bundle durante a compilação.
+
+```bash
+printf 'VITE_API_URL=%s\n' "$(gcloud run services describe backend-api --region us-central1 --format='value(status.url)')" > .env
+
+npm ci && npm run build && firebase deploy --only hosting
+```
+
+O container precisa apenas escutar na porta indicada pela variável `PORT`, em `0.0.0.0` — contrato que `server.port=${PORT:8080}` já atende.
 
 ## CI
 
 O workflow em `.github/workflows/ci.yml` roda a cada push em `main` e `develop`: sobe um PostgreSQL de serviço, compila o backend com Maven, executa os testes, e compila o frontend com lint.
-
-## Documentação
-
-| Documento | Conteúdo |
-|-----------|----------|
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Erros comuns e como diagnosticá-los |
-| [`docs/RUNBOOK-FIX-PRODUCAO.md`](docs/RUNBOOK-FIX-PRODUCAO.md) | Correção de falhas de migration em produção |
-| [`docs/ROTEIRO-PORTFOLIO.md`](docs/ROTEIRO-PORTFOLIO.md) | Backlog técnico priorizado |
 
 ## Licença
 
