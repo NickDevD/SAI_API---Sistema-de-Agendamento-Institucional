@@ -9,6 +9,10 @@ Gestão da fila de atendimento do CRAS: registro de chegada, acompanhamento em k
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
+<p align="center">
+  <img src=".github/screenshot.png" alt="Painel do SAI com o kanban de atendimentos, mostrando as colunas Aguardando, Em Atendimento, Concluídos e Cancelados, com etiquetas de prioridade nos cards" width="880">
+</p>
+
 ---
 
 ## Sobre
