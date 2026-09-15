@@ -36,8 +36,10 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         // Endpoints de Autenticação
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+
+                        // Health check (usado pelo startup probe do Cloud Run)
+                        .requestMatchers("/actuator/health").permitAll()
 
                         // Permitir Pre-flight (CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
