@@ -10,7 +10,7 @@ Gestão da fila de atendimento do CRAS: registro de chegada, acompanhamento em k
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 <p align="center">
-  <img src=".github/screenshot.png" alt="Painel do SAI com o kanban de atendimentos, mostrando as colunas Aguardando, Em Atendimento, Concluídos e Cancelados, com etiquetas de prioridade nos cards" width="880">
+  <img src=".github/demo.gif" alt="Demonstração do SAI: login no sistema, cadastro de um atendimento e movimentação do card entre as colunas do kanban, de Aguardando até Concluído" width="880">
 </p>
 
 ---
