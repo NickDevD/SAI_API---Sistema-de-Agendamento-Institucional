@@ -669,8 +669,10 @@ export default function AgendamentoPage() {
                                 </Grid>
 
                                 <FormControl fullWidth margin="normal" required>
-                                    <InputLabel>Tipo de Serviço</InputLabel>
+                                    <InputLabel id="tipo-servico-label">Tipo de Serviço</InputLabel>
                                     <Select
+                                        labelId="tipo-servico-label"
+                                        id="tipo-servico"
                                         value={formData.tipoServico ?? ''} label="Tipo de Serviço"
                                         onChange={(e: SelectChangeEvent) => setFormData({ ...formData, tipoServico: e.target.value })}
                                     >
@@ -679,8 +681,10 @@ export default function AgendamentoPage() {
                                 </FormControl>
 
                                 <FormControl fullWidth margin="normal" required>
-                                    <InputLabel>Prioridade de Atendimento</InputLabel>
+                                    <InputLabel id="prioridade-label">Prioridade de Atendimento</InputLabel>
                                     <Select
+                                        labelId="prioridade-label"
+                                        id="prioridade"
                                         value={formData.prioridade ?? 'NORMAL'} label="Prioridade de Atendimento"
                                         onChange={(e: SelectChangeEvent) => setFormData({ ...formData, prioridade: e.target.value })}
                                     >
