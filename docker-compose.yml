@@ -39,6 +39,7 @@ services:
       DEMO_SEED_ENABLED: ${DEMO_SEED_ENABLED:-false}
       DEMO_LOGIN: ${DEMO_LOGIN:-demo}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      DEMO_RESEED_INTERVAL_MS: ${DEMO_RESEED_INTERVAL_MS:-120000}
     restart: on-failure:5
     depends_on:
       postgres-db:
