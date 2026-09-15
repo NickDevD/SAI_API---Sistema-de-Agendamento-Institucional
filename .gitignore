@@ -13,3 +13,7 @@ target/
 
 ### Misc ###
 .DS_Store
+
+### Relatorios gerados em runtime ###
+# Contem dado pessoal (nome + CPF) - nunca versionar.
+relatorios/*.pdf
