@@ -68,11 +68,27 @@ public class AgendamentoService {
         return file;
     }
 
+    /**
+     * Mascara o CPF no formato usual brasileiro ({@code ***.456.789-**}).
+     *
+     * <p>O kanban nunca exibe o CPF, mas a resposta da API era servida com o numero
+     * completo e ficava visivel no devtools de qualquer pessoa autenticada. Os digitos
+     * centrais bastam para diferenciar dois solicitantes de mesmo nome.
+     *
+     * <p>O CPF integral continua no banco e no relatorio PDF, que e o registro oficial.
+     */
+    private String mascararCpf(String cpf) {
+        if (cpf == null) return null;
+        String digitos = cpf.replaceAll("\\D", "");
+        if (digitos.length() != 11) return "***";
+        return "***." + digitos.substring(3, 6) + "." + digitos.substring(6, 9) + "-**";
+    }
+
     private AgendamentoResponseDTO toDTO(Agendamento a) {
         return new AgendamentoResponseDTO(
                 a.getId(),
                 a.getNomeSolicitante(),
-                a.getCpf(),
+                mascararCpf(a.getCpf()),
                 a.getRg(),
                 a.getTipoServico(),
                 a.getPrioridade(),

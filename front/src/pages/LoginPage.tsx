@@ -6,7 +6,8 @@ import {
     Typography,
     Paper,
     InputAdornment,
-    CircularProgress
+    CircularProgress,
+    Alert
 } from '@mui/material';
 import { AccountCircle, Lock, HomeWork } from '@mui/icons-material';
 import { api } from '../services/api';
@@ -17,6 +18,13 @@ interface LoginData {
     login: string;
     senha: string;
 }
+
+// Credenciais do ambiente de demonstracao. Ficam visiveis de proposito: sem elas
+// um visitante trava na tela de login. So aparecem quando as duas variaveis estao
+// definidas no build, entao uma instalacao real nao exibe nada.
+const DEMO_LOGIN = import.meta.env.VITE_DEMO_LOGIN as string | undefined;
+const DEMO_SENHA = import.meta.env.VITE_DEMO_PASSWORD as string | undefined;
+const TEM_DEMO = Boolean(DEMO_LOGIN && DEMO_SENHA);
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -124,6 +132,38 @@ export default function LoginPage() {
                     <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>SAI</Typography>
                     <Box sx={{ width: 40, height: 3, background: '#F9A825', borderRadius: 2, mx: 'auto', mb: 1.5 }} />
                     <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>Acesso ao Sistema CRAS</Typography>
+
+                    {TEM_DEMO && (
+                        <Alert
+                            severity="info"
+                            icon={false}
+                            sx={{
+                                mb: 2.5,
+                                textAlign: 'left',
+                                fontSize: '0.8rem',
+                                py: 1,
+                                '& .MuiAlert-message': { width: '100%' },
+                            }}
+                        >
+                            <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5 }}>
+                                Ambiente de demonstração
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                <Box sx={{ fontFamily: 'monospace', fontSize: '0.8rem', lineHeight: 1.6 }}>
+                                    usuário: <strong>{DEMO_LOGIN}</strong><br />
+                                    senha: <strong>{DEMO_SENHA}</strong>
+                                </Box>
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => setFormData({ login: DEMO_LOGIN!, senha: DEMO_SENHA! })}
+                                    sx={{ flexShrink: 0, fontSize: '0.72rem' }}
+                                >
+                                    Preencher
+                                </Button>
+                            </Box>
+                        </Alert>
+                    )}
 
                     {/* Formulário - Ligando os inputs à lógica */}
                     <Box component="form" onSubmit={handleLogin}>
