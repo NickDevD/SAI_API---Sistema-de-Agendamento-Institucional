@@ -1,6 +1,6 @@
 # SAI — Sistema de Agendamento Institucional
 
-Gestão da fila de atendimento do CRAS: registro de chegada, acompanhamento em kanban, prioridade legal para idoso e PCD, e relatório de expediente em PDF.
+Um sistema para organizar a fila de atendimento do CRAS: registro de chegada, acompanhamento em kanban, prioridade legal para idoso e PCD, e relatório de expediente em PDF.
 
 [![CI](https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional/actions/workflows/ci.yml/badge.svg)](https://github.com/NickDevD/SAI_API---Sistema-de-Agendamento-Institucional/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=openjdk)
@@ -15,22 +15,22 @@ Gestão da fila de atendimento do CRAS: registro de chegada, acompanhamento em k
 
 ---
 
-## Sobre
+## Por que eu construí isso
 
-No CRAS, a fila de atendimento costuma ser controlada em papel e planilha. Quem chegou primeiro, quem tem prioridade legal, quem já foi atendido, quantas pessoas passaram no dia — tudo depende da memória do atendente e de um caderno.
+No CRAS, a fila de atendimento costuma ser controlada em papel e planilha. Quem chegou primeiro, quem tem prioridade, quem já foi atendido, quantas pessoas passaram no dia — tudo fica na memória do atendente e num caderno.
 
-O SAI organiza esse fluxo. A recepção registra a chegada do cidadão, o atendimento avança por um kanban visual, e o fechamento do expediente gera o relatório do dia em PDF.
+O SAI organiza esse fluxo. A recepção registra a chegada do cidadão, o atendimento avança por um kanban, e no fim do dia o fechamento do expediente gera o relatório em PDF.
 
-Prioridade no SUAS não é preferência, é lei: idoso (Lei 10.741/03) e pessoa com deficiência têm direito ao atendimento prioritário. Por isso a prioridade não é um campo escondido no formulário — ela fica destacada no card, visível na fila o tempo todo.
+Tem um detalhe que mudou bastante o desenho: prioridade no SUAS não é preferência, é lei. Idoso (Lei 10.741/03) e pessoa com deficiência têm direito ao atendimento prioritário. Então eu não podia tratar isso como só mais um campo do formulário — a prioridade fica destacada no card, visível na fila o tempo todo, porque é isso que o atendente precisa enxergar sem procurar.
 
-## Funcionalidades
+## O que o sistema faz
 
 - Cadastro de atendimento com validação de CPF e classificação de prioridade
 - Kanban com quatro estados: Aguardando, Em Atendimento, Concluído e Cancelado
-- Autenticação JWT com dois papéis — `ADMIN` e `USER`
-- Fechamento de expediente com geração de relatório em PDF
-- CPF mascarado nas respostas da API, exposto por inteiro apenas no relatório oficial
-- Ambiente de demonstração opcional, populado automaticamente
+- Autenticação com JWT e dois papéis, `ADMIN` e `USER`
+- Fechamento de expediente gerando o relatório do dia em PDF
+- CPF mascarado nas respostas da API — o número completo só aparece no relatório oficial
+- Ambiente de demonstração opcional, que se popula sozinho
 
 ## Stack
 
@@ -44,7 +44,7 @@ Prioridade no SUAS não é preferência, é lei: idoso (Lei 10.741/03) e pessoa 
 | Infraestrutura | Docker · GitHub Actions |
 | Deploy | Cloud Run · Firebase Hosting · Supabase |
 
-## Arquitetura
+## Como está organizado
 
 ```
 ├── backend/          API REST — Spring Boot 4 + PostgreSQL
@@ -58,22 +58,23 @@ backend/src/main/java/com/devtec/sai/
 ├── config/         Segurança, JWT, Flyway, seed de admin e demonstração
 ├── controller/     Endpoints REST
 ├── dto/            Contratos de entrada e saída
+├── exception/      Tratamento global de erros
 ├── model/          Entidades JPA e enums
 ├── repository/     Spring Data JPA
 └── service/        Regras de negócio, tokens e geração de PDF
 ```
 
-## Executando localmente
+## Rodando na sua máquina
 
-**Pré-requisitos:** Docker e Docker Compose. Para rodar sem containers, Java 21, Maven e Node 20.
+Você vai precisar de Docker e Docker Compose. Se preferir rodar sem containers, precisa de Java 21, Maven e Node 20.
 
-Crie o arquivo `.env` na raiz a partir do modelo:
+Comece copiando o modelo de variáveis:
 
 ```bash
 cp .env.example .env
 ```
 
-Preencha `POSTGRES_PASSWORD`, `JWT_SECRET` e as credenciais de administrador. Em seguida:
+Preencha `POSTGRES_PASSWORD`, `JWT_SECRET` e as credenciais de administrador. Depois:
 
 ```bash
 docker compose up --build -d
@@ -85,7 +86,7 @@ docker compose up --build -d
 | API | http://localhost:8080 |
 | Swagger | http://localhost:8080/swagger-ui.html |
 
-O usuário administrador é criado no primeiro boot a partir das variáveis do `.env`.
+O usuário administrador é criado no primeiro boot, a partir do que você colocou no `.env`.
 
 <details>
 <summary>Rodar sem Docker</summary>
@@ -98,13 +99,15 @@ cd backend && ./mvnw spring-boot:run
 cd front && npm install && npm run dev
 ```
 
-O frontend espera `VITE_API_URL=http://localhost:8080` em `front/.env`.
+Crie um `front/.env` com `VITE_API_URL=http://localhost:8080`.
 
 </details>
 
 ### Ambiente de demonstração
 
-Com `DEMO_SEED_ENABLED=true`, a aplicação cria o usuário `demo` e popula a base com seis atendimentos fictícios. O usuário demo tem papel `USER`: movimenta atendimentos, mas não fecha o expediente — operação restrita a `ADMIN` que apaga os registros do dia. Se a base ficar vazia, o seed é reposto automaticamente.
+Se você ligar `DEMO_SEED_ENABLED=true`, a aplicação cria o usuário `demo` e popula a base com seis atendimentos fictícios.
+
+O demo tem papel `USER` de propósito. Ele movimenta atendimentos, mas não fecha o expediente — essa operação exige `ADMIN` e apaga os registros do dia. Sem isso, qualquer visitante esvaziaria a demonstração no primeiro clique. E se a base ficar vazia por algum motivo, o seed repõe os dados sozinho.
 
 ## Variáveis de ambiente
 
@@ -119,8 +122,8 @@ Com `DEMO_SEED_ENABLED=true`, a aplicação cria o usuário `demo` e popula a ba
 | `CORS_ALLOWED_ORIGINS` | Não | `localhost:5173` e o host de produção | Origens liberadas, separadas por vírgula |
 | `ADMIN_LOGIN_LINE` | Não | — | Login do administrador criado no boot |
 | `ADMIN_PASSWORD_LINE` | Não | — | Senha do administrador |
-| `RELATORIO_PATH` | Não | `/app/relatorios` | Diretório de saída dos PDFs |
-| `DEMO_SEED_ENABLED` | Não | `false` | Ativa o ambiente de demonstração |
+| `RELATORIO_PATH` | Não | `/app/relatorios` | Onde os PDFs são gravados |
+| `DEMO_SEED_ENABLED` | Não | `false` | Liga o ambiente de demonstração |
 | `PORT` | Não | `8080` | Porta do servidor |
 
 ### Frontend
@@ -128,20 +131,20 @@ Com `DEMO_SEED_ENABLED=true`, a aplicação cria o usuário `demo` e popula a ba
 | Variável | Descrição |
 |----------|-----------|
 | `VITE_API_URL` | URL base da API, sem sufixo de caminho |
-| `VITE_DEMO_LOGIN` | Login exibido na tela de login, quando houver demonstração |
-| `VITE_DEMO_PASSWORD` | Senha exibida na tela de login |
+| `VITE_DEMO_LOGIN` | Login mostrado na tela de login, quando há demonstração |
+| `VITE_DEMO_PASSWORD` | Senha mostrada na tela de login |
 
-As variáveis `VITE_*` são incorporadas ao bundle em tempo de build e não mudam sem uma nova compilação.
+Vale lembrar que as variáveis `VITE_*` entram no bundle na hora do build. Mudar depois não adianta — precisa compilar de novo.
 
 ## API
 
-Todas as rotas, exceto o login, exigem o header `Authorization: Bearer <token>`. O token expira em duas horas.
+Fora o login, toda rota exige o header `Authorization: Bearer <token>`. O token vale por duas horas.
 
 ### Autenticação
 
 | Método | Rota | Descrição | Acesso |
 |--------|------|-----------|--------|
-| `POST` | `/auth/login` | Autentica e retorna o token | Público |
+| `POST` | `/auth/login` | Autentica e devolve o token | Público |
 | `POST` | `/auth/register` | Cadastra usuário | Autenticado |
 
 ```json
@@ -173,7 +176,7 @@ POST /agendamentos/agendar
 }
 ```
 
-**Domínios aceitos**
+**Valores aceitos**
 
 | Campo | Valores |
 |-------|---------|
@@ -181,7 +184,7 @@ POST /agendamentos/agendar
 | `prioridade` | `NORMAL` · `IDOSO` · `PREFERENCIAL` · `PCD` |
 | `status` | `AGUARDANDO` · `EM_ATENDIMENTO` · `CONCLUIDO` · `CANCELADO` |
 
-O endpoint `/actuator/health` é público, para uso em health checks.
+O `/actuator/health` é público, para health check.
 
 ## Banco de dados
 
@@ -193,13 +196,13 @@ O schema é versionado com Flyway e aplicado na inicialização.
 | V2 | Tabela `tb_usuarios` |
 | V3 | Coluna `prioridade` em `tb_agendamentos` |
 
-O Flyway é orquestrado por `FlywayConfig.java` em vez da auto-configuração. No Spring Boot 4 a ordem padrão não garante que as migrations rodem antes da validação de schema do Hibernate, o que fazia a aplicação falhar no boot com `missing table/column`.
+Uma decisão que vale explicar: o Flyway é configurado à mão no `FlywayConfig.java`, em vez da auto-configuração. No Spring Boot 4 a ordem padrão não garante que as migrations rodem antes da validação de schema do Hibernate, e a aplicação quebrava no boot com `missing table/column`.
 
 ## Deploy
 
-A aplicação roda em três serviços independentes: **Cloud Run** (API), **Firebase Hosting** (frontend) e **Supabase** (banco). O estado vive inteiramente fora do container, que pode ser descartado e recriado a qualquer momento.
+Rodo em três serviços independentes: **Cloud Run** para a API, **Firebase Hosting** para o frontend e **Supabase** para o banco. O estado fica todo fora do container, que pode ser descartado e recriado a qualquer momento.
 
-**Backend.** A imagem é construída pelo Cloud Build e publicada no Artifact Registry; as senhas ficam no Secret Manager.
+**Backend.** A imagem é construída pelo Cloud Build e publicada no Artifact Registry. As senhas ficam no Secret Manager.
 
 ```bash
 gcloud builds submit --tag us-central1-docker.pkg.dev/$PROJETO/sai-repo/sai-backend .
@@ -214,7 +217,7 @@ gcloud run deploy backend-api \
   --set-secrets "SPRING_DATASOURCE_PASSWORD=sai-db-password:latest,JWT_SECRET=sai-jwt-secret:latest"
 ```
 
-**Frontend.** A URL da API é incorporada ao bundle durante a compilação.
+**Frontend.** A URL da API entra no bundle durante a compilação.
 
 ```bash
 printf 'VITE_API_URL=%s\n' "$(gcloud run services describe backend-api --region us-central1 --format='value(status.url)')" > .env
@@ -222,11 +225,11 @@ printf 'VITE_API_URL=%s\n' "$(gcloud run services describe backend-api --region 
 npm ci && npm run build && firebase deploy --only hosting
 ```
 
-O container precisa apenas escutar na porta indicada pela variável `PORT`, em `0.0.0.0` — contrato que `server.port=${PORT:8080}` já atende.
+O Cloud Run só exige que o container escute na porta que vem em `PORT`, em `0.0.0.0` — o `server.port=${PORT:8080}` já resolve isso.
 
 ## CI
 
-O workflow em `.github/workflows/ci.yml` roda a cada push em `main` e `develop`: sobe um PostgreSQL de serviço, compila o backend com Maven, executa os testes, e compila o frontend com lint.
+O workflow em `.github/workflows/ci.yml` roda a cada push em `main` e `develop`: sobe um PostgreSQL de serviço, compila o backend com Maven, executa os testes e compila o frontend com lint.
 
 ## Licença
 

@@ -19,9 +19,8 @@ interface LoginData {
     senha: string;
 }
 
-// Credenciais do ambiente de demonstracao. Ficam visiveis de proposito: sem elas
-// um visitante trava na tela de login. So aparecem quando as duas variaveis estao
-// definidas no build, entao uma instalacao real nao exibe nada.
+// Visíveis de propósito: sem elas o visitante trava na tela de login.
+// Só aparecem se as duas variáveis existirem no build.
 const DEMO_LOGIN = import.meta.env.VITE_DEMO_LOGIN as string | undefined;
 const DEMO_SENHA = import.meta.env.VITE_DEMO_PASSWORD as string | undefined;
 const TEM_DEMO = Boolean(DEMO_LOGIN && DEMO_SENHA);
@@ -63,7 +62,6 @@ export default function LoginPage() {
                 overflow: 'hidden',
             }}
         >
-            {/* ══ PAINEL INSTITUCIONAL (oculto em telas pequenas) ══════════ */}
             <Box
                 sx={{
                     display: { xs: 'none', md: 'flex' },
@@ -80,7 +78,6 @@ export default function LoginPage() {
                     py: 7,
                 }}
             >
-                {/* Formas decorativas em segundo plano */}
                 <Box sx={{
                     position: 'absolute', top: -80, right: -100, width: 320, height: 320,
                     borderRadius: '50%', background: 'rgba(249,168,37,0.12)',
@@ -115,7 +112,6 @@ export default function LoginPage() {
                 </Typography>
             </Box>
 
-            {/* ══ FORMULÁRIO DE LOGIN ══════════════════════════════════════ */}
             <Box
                 sx={{
                     flex: 1,
@@ -127,7 +123,6 @@ export default function LoginPage() {
                 }}
             >
                 <Paper elevation={0} sx={{ p: 4, width: '100%', maxWidth: 400, border: '1px solid #D6DFF0', textAlign: 'center' }}>
-                    {/* Visual - Cabeçalho (visível também em mobile, sem o painel lateral) */}
                     <HomeWork sx={{ display: { xs: 'inline-flex', md: 'none' }, fontSize: 30, color: 'primary.main', mb: 1 }} />
                     <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>SAI</Typography>
                     <Box sx={{ width: 40, height: 3, background: '#F9A825', borderRadius: 2, mx: 'auto', mb: 1.5 }} />
@@ -165,7 +160,6 @@ export default function LoginPage() {
                         </Alert>
                     )}
 
-                    {/* Formulário - Ligando os inputs à lógica */}
                     <Box component="form" onSubmit={handleLogin}>
                         <TextField
                             label="Usuário" name="login" value={formData.login} onChange={handleChange} fullWidth margin="normal" required

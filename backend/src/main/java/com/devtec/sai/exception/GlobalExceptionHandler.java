@@ -49,7 +49,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleException(Exception ex) {
-        //ex.printStackTrace();
         ErrorResponseDTO response = new ErrorResponseDTO(
                 "Ocorreu um erro interno no servidor. Contate o suporte.",
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -60,7 +59,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }
-
-
-
 

@@ -43,7 +43,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
-// ─── MUI THEME ────────────────────────────────────────────────────────────────
 const crasTema = createTheme({
     palette: {
         primary:    { main: '#1565C0', light: '#1976D2', dark: '#0D3B7A', contrastText: '#fff' },
@@ -71,7 +70,6 @@ const crasTema = createTheme({
     },
 });
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
 interface Agendamento {
     id: string;
     nomeSolicitante: string;
@@ -92,7 +90,6 @@ interface FormData {
     dataHoraChegada: string;
 }
 
-// ─── CONSTANTES ───────────────────────────────────────────────────────────────
 const TIPOS_SERVICO = [
     { value: 'EMISSAO_DOCUMENTOS',       label: 'Emissão de Documentos' },
     { value: 'BENEFICIO_PREVIDENCIARIO', label: 'Benefício Previdenciário' },
@@ -108,7 +105,6 @@ const PRIORIDADES = [
     { value: 'PCD',          label: 'Pessoa com Deficiência (PCD)' },
 ];
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 const borderColorMap: Record<Agendamento['status'], string> = {
     AGUARDANDO:     '#F9A825',
     EM_ATENDIMENTO: '#1565C0',
@@ -138,7 +134,6 @@ const prioridadeLabel = (p: string | null | undefined): string | null => {
     return p.replace('_', ' ');
 };
 
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function AgendamentoPage() {
     const navigate = useNavigate();
     const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
@@ -248,7 +243,6 @@ export default function AgendamentoPage() {
         COLUNAS.map(col => [col.key, agendamentos.filter(a => a.status === col.key)])
     );
 
-    // ─────────────────────────────────────────────────────────────────────────
     return (
         <ThemeProvider theme={crasTema}>
             <Box sx={{
@@ -259,13 +253,11 @@ export default function AgendamentoPage() {
                 overflow: 'hidden',
             }}>
 
-                {/* ══ CABEÇALHO INSTITUCIONAL ══════════════════════════════ */}
                 <Box component="header" sx={{
                     flexShrink: 0,
                     background: '#0D3B7A',
                     borderBottom: '4px solid #F9A825',
                 }}>
-                    {/* Faixa principal */}
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -307,7 +299,6 @@ export default function AgendamentoPage() {
                             </Typography>
                         </Box>
 
-                        {/* Botão de Logout */}
                         <Tooltip title="Sair do sistema">
                             <IconButton
                                 onClick={handleLogout}
@@ -319,7 +310,6 @@ export default function AgendamentoPage() {
                         </Tooltip>
                     </Box>
 
-                    {/* Sub‑barra de turno */}
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -336,7 +326,6 @@ export default function AgendamentoPage() {
                     </Box>
                 </Box>
 
-                {/* ══ ÁREA DE CONTEÚDO ══════════════════════════════════════ */}
                 <Box sx={{
                     flex: 1,
                     minHeight: 0,
@@ -347,7 +336,6 @@ export default function AgendamentoPage() {
                     gap: { xs: 1.5, md: 2 },
                 }}>
 
-                    {/* ── BARRA DE AÇÕES ── */}
                     <Box sx={{
                         flexShrink: 0,
                         display: 'flex',
@@ -388,7 +376,6 @@ export default function AgendamentoPage() {
                         </Button>
                     </Box>
 
-                    {/* ── CARDS DE RESUMO ── */}
                     <Box sx={{
                         flexShrink: 0,
                         display: 'grid',
@@ -426,7 +413,6 @@ export default function AgendamentoPage() {
                         ))}
                     </Box>
 
-                    {/* ── KANBAN ── */}
                     <Box sx={{
                         flex: 1,
                         minHeight: 0,
@@ -450,7 +436,6 @@ export default function AgendamentoPage() {
                                     minHeight: { xs: 260, sm: 300, md: 0 },
                                 }}>
 
-                                    {/* Cabeçalho da coluna */}
                                     <Box sx={{
                                         flexShrink: 0,
                                         display: 'flex',
@@ -483,7 +468,6 @@ export default function AgendamentoPage() {
                                         </Box>
                                     </Box>
 
-                                    {/* Lista de cartões — scroll interno */}
                                     <Box sx={{
                                         flex: 1,
                                         minHeight: 0,
@@ -518,7 +502,6 @@ export default function AgendamentoPage() {
                                                 transition: 'box-shadow 0.2s',
                                                 '&:hover': { boxShadow: '0 2px 10px rgba(0,0,0,0.08)' },
                                             }}>
-                                                {/* Status + prioridade */}
                                                 <Box display="flex" gap={0.5} mb={0.75} flexWrap="wrap">
                                                     <Box sx={{
                                                         display: 'inline-flex',
@@ -610,7 +593,6 @@ export default function AgendamentoPage() {
                     </Box>
                 </Box>
 
-                {/* ══ MODAL NOVO AGENDAMENTO ═══════════════════════════════ */}
                 <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
                     <Box sx={{
                         position: 'absolute',
@@ -720,7 +702,6 @@ export default function AgendamentoPage() {
                     </Box>
                 </Modal>
 
-                {/* ══ TOAST ════════════════════════════════════════════════ */}
                 <Snackbar
                     open={toast.open}
                     autoHideDuration={5000}
@@ -732,7 +713,6 @@ export default function AgendamentoPage() {
                     </Alert>
                 </Snackbar>
 
-                {/* ══ RODAPÉ ═══════════════════════════════════════════════ */}
                 <Box component="footer" sx={{
                     flexShrink: 0,
                     background: '#0D3B7A',

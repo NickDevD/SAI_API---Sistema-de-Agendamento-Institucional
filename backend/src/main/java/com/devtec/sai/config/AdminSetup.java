@@ -20,11 +20,10 @@ public class AdminSetup implements CommandLineRunner {
     private final UsuarioRepository repository;
     private final PasswordEncoder encoder;
 
-    // Allow either ADMIN_LOGIN_LINE (platform-specific) or ADMIN_LOGIN (generic)
+    // Aceita os dois nomes por compatibilidade com deploys antigos
     @Value("${ADMIN_LOGIN_LINE:${ADMIN_LOGIN:}}")
     private String adminLogin;
 
-    // Support multiple names for deploy compatibility. ADMIN_PASSWORD_LINE is used in our GCP setup.
     @Value("${ADMIN_PASSWORD_LINE:}")
     private String adminPasswordLine;
 
@@ -49,7 +48,6 @@ public class AdminSetup implements CommandLineRunner {
 
         if (repository.findByLogin(adminLogin) == null) {
             String senhaEncrypted;
-            // Priority: ADMIN_PASSWORD_LINE (GCP) -> ADMIN_PASSWORD_PLAIN -> ADMIN_PASSWORD_HASH
             if (StringUtils.hasText(adminPasswordLine)) {
                 senhaEncrypted = encoder.encode(adminPasswordLine);
             } else if (StringUtils.hasText(adminPasswordPlain)) {
