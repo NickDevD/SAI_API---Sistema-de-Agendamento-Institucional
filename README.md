@@ -15,6 +15,23 @@ Um sistema para organizar a fila de atendimento do CRAS: registro de chegada, ac
 
 ---
 
+## Experimentar
+
+| | |
+|---|---|
+| **Sistema** | https://sai-agendamento-institucional.web.app |
+| **API — Swagger** | https://backend-api-301612765087.us-central1.run.app/swagger-ui.html |
+| **Usuário** | `demo` |
+| **Senha** | `demo123` |
+
+O usuário demo tem papel `USER`: cria e movimenta atendimentos, mas não fecha o expediente — essa operação exige `ADMIN` e apagaria os dados da demonstração. Se a base ficar vazia, o seed repõe os seis atendimentos fictícios sozinho.
+
+No Swagger, autentique em `POST /auth/login`, copie o `token` da resposta e cole no botão **Authorize** para liberar as demais rotas.
+
+> O backend roda sem instâncias ociosas para ficar na cota gratuita do Cloud Run, então o primeiro acesso depois de um período parado leva cerca de um minuto para responder.
+
+---
+
 ## Por que eu construí isso
 
 No CRAS, a fila de atendimento costuma ser controlada em papel e planilha. Quem chegou primeiro, quem tem prioridade, quem já foi atendido, quantas pessoas passaram no dia — tudo fica na memória do atendente e num caderno.
