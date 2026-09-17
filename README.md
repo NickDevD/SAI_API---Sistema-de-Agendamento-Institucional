@@ -217,30 +217,64 @@ Uma decisão que vale explicar: o Flyway é configurado à mão no `FlywayConfig
 
 ## Deploy
 
-Rodo em três serviços independentes: **Cloud Run** para a API, **Firebase Hosting** para o frontend e **Supabase** para o banco. O estado fica todo fora do container, que pode ser descartado e recriado a qualquer momento.
+Rodo em três serviços independentes: **Cloud Run** para a API, **Firebase Hosting** para o frontend e **Supabase** para o banco. O estado fica todo fora do container, que pode ser descartado e recriado a qualquer momento — é o que permite escalar a zero e ficar na cota gratuita.
 
-**Backend.** A imagem é construída pelo Cloud Build e publicada no Artifact Registry. As senhas ficam no Secret Manager.
+```
+GitHub ──▶ Cloud Build ──▶ Artifact Registry ──▶ Cloud Run ──▶ Supabase
+                                                      ▲
+                          Firebase Hosting ───────────┘
+                          (bundle estático)
+```
+
+### Backend
+
+O Cloud Build compila o Java na nuvem a partir do `Dockerfile`, publica a imagem no Artifact Registry, e o Cloud Run passa a servi-la. As senhas ficam no Secret Manager e são entregues ao container em tempo de execução.
 
 ```bash
 gcloud builds submit --tag us-central1-docker.pkg.dev/$PROJETO/sai-repo/sai-backend .
 
-gcloud run deploy backend-api \
-  --image us-central1-docker.pkg.dev/$PROJETO/sai-repo/sai-backend \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --memory 1Gi \
-  --set-env-vars "SPRING_DATASOURCE_URL=jdbc:postgresql://$DB_HOST:5432/postgres?sslmode=require" \
-  --set-env-vars "SPRING_DATASOURCE_USERNAME=$DB_USER,CORS_ALLOWED_ORIGINS=https://seu-site.web.app" \
-  --set-secrets "SPRING_DATASOURCE_PASSWORD=sai-db-password:latest,JWT_SECRET=sai-jwt-secret:latest"
+gcloud run deploy backend-api   --image us-central1-docker.pkg.dev/$PROJETO/sai-repo/sai-backend   --region us-central1   --allow-unauthenticated   --min-instances 0   --timeout 300   --memory 1Gi   --set-env-vars "SPRING_DATASOURCE_URL=jdbc:postgresql://$DB_HOST:5432/postgres?sslmode=require"   --set-env-vars "SPRING_DATASOURCE_USERNAME=$DB_USER,TZ=America/Sao_Paulo"   --set-env-vars "DEMO_SEED_ENABLED=true,DEMO_LOGIN=demo,DEMO_PASSWORD=demo123"   --set-secrets "SPRING_DATASOURCE_PASSWORD=sai-db-password:latest,JWT_SECRET=sai-jwt-secret:latest,ADMIN_PASSWORD_LINE=sai-admin-pass:latest"
 ```
 
-**Frontend.** A URL da API entra no bundle durante a compilação.
+Três escolhas que valem explicar:
+
+`--memory 1Gi` porque os 512 MB padrão não comportam a JVM — o container morre por falta de memória, e o log não deixa claro. `--min-instances 0` mantém tudo na cota gratuita, ao custo de o primeiro acesso após ociosidade esperar o boot. E `TZ` porque o Cloud Run roda em UTC: sem isso os horários do relatório saem três horas deslocados.
+
+### Banco
+
+O Supabase entra pela **Session pooler**, na porta 5432. A conexão direta (`db.<ref>.supabase.co`) resolve apenas em IPv6, e o egress do Cloud Run é IPv4 — a conexão nunca completa e o container morre no boot sem mensagem clara. A porta 6543, do *transaction pooler*, também não serve: ela não mantém sessão entre comandos, o que quebra os locks das migrations do Flyway.
+
+### Frontend
+
+A URL da API é incorporada ao bundle **durante a compilação**, então o `.env` precisa existir antes do `npm run build`.
 
 ```bash
-printf 'VITE_API_URL=%s\n' "$(gcloud run services describe backend-api --region us-central1 --format='value(status.url)')" > .env
+export API=$(gcloud run services describe backend-api --region us-central1 --format='value(status.url)')
 
-npm ci && npm run build && firebase deploy --only hosting
+printf 'VITE_API_URL=%s
+VITE_DEMO_LOGIN=demo
+VITE_DEMO_PASSWORD=demo123
+' "$API" > .env
+
+npm ci && rm -rf dist && npm run build
+
+firebase deploy --only hosting
 ```
+
+Confira o bundle antes de publicar — sem `.env`, o Vite usa o fallback `localhost:8080` e nenhuma chamada funciona em produção, sem nenhum erro no build:
+
+```bash
+grep -c "localhost:8080" dist/assets/*.js   # precisa ser 0
+```
+
+### Verificação
+
+```bash
+curl -s -o /dev/null -w "%{http_code}
+" -X POST -H "Content-Type: application/json" -d '{"login":"x","senha":"x"}' $API/auth/login
+```
+
+**401 é o resultado certo**: significa que a API subiu e rejeitou a senha errada. 503 é container que não sobe; 500 é falha interna, normalmente banco.
 
 O Cloud Run só exige que o container escute na porta que vem em `PORT`, em `0.0.0.0` — o `server.port=${PORT:8080}` já resolve isso.
 
